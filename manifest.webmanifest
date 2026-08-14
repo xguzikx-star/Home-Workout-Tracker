@@ -1,0 +1,13 @@
+{
+  "name": "Home Workout Tracker",
+  "short_name": "Treningi",
+  "description": "Prywatny dziennik treningów domowych",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#090c0d",
+  "theme_color": "#090c0d",
+  "icons": [
+    {"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
+}
