@@ -11,6 +11,12 @@ const LIB=[
 ['Mobilizacja bioder','Mobilność','Mata'],['Mobilizacja barków','Mobilność','Mata'],['Koci grzbiet','Mobilność','Mata'],['Rotacja odcinka piersiowego','Mobilność','Mata'],['Krążenia bioder','Mobilność','Masa ciała'],['Krążenia ramion','Mobilność','Masa ciała'],['Rotacja biodra w pozycji 90/90','Mobilność','Mata'],['Przejścia 90/90 bioder','Mobilność','Mata'],['Ankle rocks — mobilizacja kostki','Mobilność','Mata'],
 ['Rozciąganie łydki przy ścianie','Rozciąganie','Mata'],['Rozciąganie tyłu uda — stojąc','Rozciąganie','Mata'],['Rozciąganie tyłu uda — leżąc z taśmą','Rozciąganie','Taśma'],['Rozciąganie tyłu uda — siad','Rozciąganie','Mata'],['Rozciąganie przodu uda — stojąc','Rozciąganie','Mata'],['Rozciąganie zginacza biodra — wykrok','Rozciąganie','Mata'],['Rozciąganie pośladka — figura 4','Rozciąganie','Mata'],['Pozycja gołębia','Rozciąganie','Mata'],['Pozycja motyla','Rozciąganie','Mata'],['Rozciąganie przywodzicieli — szeroki siad','Rozciąganie','Mata'],['Rozciąganie przywodzicieli — wykrok boczny','Rozciąganie','Mata'],['Pozycja dziecka','Rozciąganie','Mata'],['Pies z głową w dół','Rozciąganie','Mata'],['Pozycja kobry','Rozciąganie','Mata'],['Skręt kręgosłupa w leżeniu','Rozciąganie','Mata'],['Rozciąganie klatki w drzwiach','Rozciąganie','Masa ciała'],['Rozciąganie barku w poprzek klatki','Rozciąganie','Masa ciała'],['Rozciąganie tricepsa nad głową','Rozciąganie','Masa ciała'],['Rozciąganie mięśni najszerszych grzbietu','Rozciąganie','Mata'],['Rozciąganie szyi na bok','Rozciąganie','Masa ciała'],['Skłon boczny tułowia','Rozciąganie','Masa ciała'],['Rozciąganie całego ciała w leżeniu','Rozciąganie','Mata']
 ].map((e,i)=>({id:'lib'+i,name:e[0],group:e[1],gear:e[2]}));
+
+// Rozszerzony katalog ćwiczeń dostosowany do domowego sprzętu.
+const EXTRA_LIBRARY=[
+ ['Rewersy (reverse crunch)','Core','Mata'],['Nożyce nogami','Core','Mata'],['Rowerek (bicycle crunch)','Core','Mata'],['Hollow body hold','Core','Mata'],['Semi hollow body','Core','Mata'],['Dotykanie barków w podporze','Core','Masa ciała'],['Rotacje w desce bokiem','Core','Masa ciała'],['Deska na kolanach','Core','Mata'],['Deska bokiem na kolanach','Core','Mata'],['Wycieraczki – ugięte nogi','Core','Mata'],['Przyciąganie kolan z miniband','Core','Taśma'],['Rotacje tułowia z taśmą','Core','Taśma'],['Pallof press w wykroku','Core','Taśma'],['Half kneeling dumbbell chop','Core','Hantle'],['Suitcase carry z hantlem','Core','Hantle'],['Spacer farmera z hantlami','Core','Hantle'],['Unoszenie kolan w zwisie na drążku','Core','Drążek'],['Unoszenie kolan na skos w zwisie','Core','Drążek'],['Zwis aktywny na drążku','Plecy','Drążek'],['Zwis swobodny na drążku','Plecy','Drążek'],['Ściąganie łopatek w zwisie','Plecy','Drążek'],['Podciąganie z pomocą taśmy','Plecy','Drążek'],['Podciąganie negatywne','Plecy','Drążek'],['Glute bridge z miniband','Pośladki','Taśma'],['Chód bokiem z miniband','Pośladki','Taśma'],['Pallof press w klęku','Core','Taśma'],['Wiosłowanie taśmą w siadzie','Plecy','Taśma'],['Pompki z rękami na podwyższeniu','Klatka','Masa ciała']
+];
+EXTRA_LIBRARY.forEach(([name,group,gear],i)=>{if(!LIB.some(x=>x.name===name))LIB.push({id:'extra'+i,name,group,gear})});
 const makeEx=(name,group='Własne',gear='Inne',sets=3,reps=10,kg=0)=>({id:uid(),name,group,gear,sets:Array.from({length:sets},()=>({reps,kg,done:false}))});
 const defaults=[{id:'a',name:'Siła A',focus:'Całe ciało',minutes:40,ex:[makeEx('Przysiad z hantlem','Nogi','Hantle',3,10,5),makeEx('Wiosłowanie hantlami','Plecy','Hantle',3,10,5),makeEx('Wyciskanie hantli leżąc','Klatka','Hantle',3,10,5),makeEx('Monster walk','Pośladki','Taśma',3,12,0),makeEx('Dead bug','Core','Masa ciała',3,8,0)]},{id:'b',name:'Siła B',focus:'Pośladki · plecy · core',minutes:42,ex:[makeEx('Martwy ciąg z hantlami','Pośladki','Hantle',3,10,5),makeEx('Glute bridge z taśmą','Pośladki','Taśma',3,12,5),makeEx('Wyciskanie nad głowę','Barki','Hantle',3,8,5),makeEx('Ściąganie taśmy do klatki','Plecy','Taśma',3,12,0),makeEx('Bird dog','Core','Masa ciała',3,8,0)]},{id:'c',name:'Kondycja + mobilność',focus:'Lżejsza sesja',minutes:30,ex:[makeEx('Marsz z wysokim unoszeniem kolan','Kondycja','Masa ciała',4,20,0),makeEx('Przysiad do krzesła','Nogi','Masa ciała',3,12,0),makeEx('Pallof press','Core','Taśma',3,10,0),makeEx('Mobilizacja bioder','Mobilność','Mata',1,8,0)]}];
 const oldPlans=JSON.parse(localStorage.getItem('hwt-plans')||'null');function migratePlan(p){return {...p,ex:(p.ex||[]).map(e=>e.sets instanceof Array?e:makeEx(e.name,e.group,e.gear,Number(e.sets)||3,parseInt(e.reps)||10,Number(e.kg)||0))}}
@@ -72,6 +78,40 @@ function exerciseGuide(name,group){
  if(group==='Kondycja')return ['Zacznij w umiarkowanym tempie i zadbaj o swobodny oddech.','Utrzymuj technikę; zmniejsz tempo, kiedy tracisz kontrolę ruchu.'];
  return ['Przyjmij stabilną pozycję i dobierz komfortowy zakres ruchu.','Wykonuj powtórzenia bez pośpiechu i bez bólu; oddychaj regularnie.'];
 }
+
+Object.assign(EXERCISE_GUIDES,{
+'Rewersy (reverse crunch)':['Leżąc na plecach, zegnij biodra i kolana do kąta prostego.','Podwiń miednicę i lekko unieś ją z maty bez zamachu nogami.'],
+'Nożyce nogami':['Połóż się na plecach i ustabilizuj odcinek lędźwiowy.','Wykonuj małe naprzemienne ruchy nóg, nie pozwalając plecom odrywać się od maty.'],
+'Rowerek (bicycle crunch)':['Unieś łopatki i trzymaj ręce lekko przy głowie.','Obracaj klatkę w kierunku przeciwnego kolana bez ciągnięcia za szyję.'],
+'Hollow body hold':['Połóż się na plecach, dociśnij lędźwie do maty.','Unieś ręce, barki i nogi tylko tak wysoko, by plecy nie traciły kontaktu z podłożem.'],
+'Semi hollow body':['Podwiń miednicę i unieś łopatki, kolana trzymaj ugięte.','Oddychaj swobodnie i nie pozwól, by lędźwie się wyginały.'],
+'Dotykanie barków w podporze':['Ustaw dłonie pod barkami i rozszerz stopy dla stabilności.','Dotykaj naprzemiennie przeciwnego barku, ograniczając kołysanie bioder.'],
+'Rotacje w desce bokiem':['Oprzyj łokieć pod barkiem, unieś biodra.','Przeprowadź wolną rękę pod tułowiem, a następnie otwórz klatkę piersiową.'],
+'Deska na kolanach':['Oprzyj przedramiona i kolana na macie.','Napnij brzuch, utrzymując prostą linię od głowy do kolan.'],
+'Deska bokiem na kolanach':['Oprzyj łokieć pod barkiem i zegnij kolana.','Unieś biodra, utrzymując tułów w jednej linii.'],
+'Wycieraczki – ugięte nogi':['Połóż się na plecach, ramiona rozłóż na boki i unieś ugięte kolana.','Powoli opuszczaj kolana w jedną i drugą stronę bez odrywania barków.'],
+'Przyciąganie kolan z miniband':['Załóż miniband na stopy i przyjmij stabilny podpór.','Przyciągaj naprzemiennie kolano pod klatkę, kontrolując miednicę.'],
+'Rotacje tułowia z taśmą':['Zamocuj taśmę do stabilnego punktu na wysokości klatki.','Skręcaj tułów przez klatkę piersiową i biodra; nie szarp ramionami.'],
+'Pallof press w wykroku':['Ustaw wykrok bokiem do dobrze umocowanej taśmy.','Wypchnij dłonie przed klatkę, nie pozwalając tułowiowi rotować.'],
+'Half kneeling dumbbell chop':['Klęknij na jednym kolanie i chwyć lekki hantel oburącz.','Prowadź hantel ukośnie w kontrolowanym zakresie, bez szarpania lędźwiami.'],
+'Suitcase carry z hantlem':['Trzymaj jeden hantel w dłoni wzdłuż tułowia.','Maszeruj prosto, nie przechylając się w stronę ciężaru.'],
+'Spacer farmera z hantlami':['Chwyć hantle, opuść barki i napnij brzuch.','Idź równym krokiem, nie kołysząc tułowiem.'],
+'Unoszenie kolan w zwisie na drążku':['Zawiśnij na pewnie zamocowanym drążku, bez bujania.','Podciągnij kolana do brzucha, potem powoli je opuść.'],
+'Unoszenie kolan na skos w zwisie':['Zawiśnij stabilnie na drążku.','Unoś kolana po lekkim skosie, unikając wymachiwania nogami.'],
+'Zwis aktywny na drążku':['Zawiśnij na drążku, utrzymując mocny chwyt.','Obniż barki poprzez napięcie łopatek, nie zginając łokci.'],
+'Zwis swobodny na drążku':['Sprawdź mocowanie drążka i trzymaj go pewnie oburącz.','Zawiśnij tylko tak długo, jak utrzymujesz bezpieczny chwyt.'],
+'Ściąganie łopatek w zwisie':['Zawiśnij na drążku z prostymi łokciami.','Ściągnij łopatki lekko w dół, unieś ciało o kilka centymetrów.'],
+'Podciąganie z pomocą taśmy':['Użyj właściwie zamocowanej taśmy i stabilnego drążka.','Podciągaj się spokojnie bez zamachu; nie stawaj bezpośrednio pod napiętą taśmą.'],
+'Podciąganie negatywne':['Wejdź bezpiecznie do górnej pozycji przy pomocy stabilnego podwyższenia.','Opuszczaj się wolno, bez gwałtownego wyprostowania łokci.'],
+'Wiosłowanie w szarfach':['Sprawdź stabilność mocowania szarf i odchyl ciało z prostym tułowiem.','Przyciągaj klatkę do dłoni, prowadząc łokcie blisko ciała.'],
+'Przysiad wspomagany na szarfach':['Chwyć stabilne szarfy i ustaw stopy na szerokość bioder.','Schodź do przysiadu z kontrolą, używając szarf tylko do wsparcia.'],
+'Wykrok w tył ze wsparciem szarf':['Trzymaj szarfy lekko, nie zawieszaj na nich ciężaru.','Cofnij nogę i ugnij kolana, utrzymując stabilne biodra.'],
+'Deska w szarfach':['Umieść stopy w stabilnie zamocowanych pętlach i oprzyj przedramiona.','Napnij brzuch i pośladki, nie wyginaj lędźwi; to wariant zaawansowany.'],
+'Przyciąganie kolan w szarfach':['Umieść stopy w pętlach i ustaw podpór na dłoniach.','Przyciągaj kolana do klatki bez opadania bioder; wariant zaawansowany.'],
+'Chód bokiem z miniband':['Załóż gumę nad kolana lub na kostki, utrzymuj lekki przysiad.','Rób nieduże kroki bokiem bez kołysania tułowiem.'],
+'Wiosłowanie taśmą w siadzie':['Usiądź prosto, załóż taśmę na stopy i trzymaj końce w dłoniach.','Przyciągaj łokcie wzdłuż tułowia, nie zaokrąglaj pleców.'],
+'Pompki z rękami na podwyższeniu':['Oprzyj dłonie na stabilnym podwyższeniu.','Obniżaj klatkę, zachowując prostą linię ciała, i odepchnij się.']
+});
 function guideHTML(name,group,compact=false){const steps=exerciseGuide(name,group);return `<details class="tech-guide ${compact?'compact':''}"><summary><span class="guide-spark">✦</span> Jak wykonać? <span class="guide-chevron">⌄</span></summary><ol>${steps.map(t=>`<li>${esc(t)}</li>`).join('')}</ol><p class="guide-footnote">Wskazówki ogólne. Jeśli pojawia się ból, przerwij ćwiczenie.</p></details>`}
 
 const app=document.querySelector('#app');document.querySelector('#nav').innerHTML=`<button data-tab="home">⌂<span>Start</span></button><button data-tab="plans">▦<span>Plany</span></button><button data-tab="history">◷<span>Historia</span></button><button data-tab="stats">⌁<span>Postępy</span></button>`;
@@ -130,9 +170,9 @@ function getStreak(){const days=new Set(logs.map(l=>localDay(new Date(l.date))))
 function download(name,text,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}function exportJSON(){download(`treningi-backup-${localDay()}.json`,JSON.stringify({version:3,exportedAt:new Date().toISOString(),plans,logs,weights,favorites,recentExercises,ownedGear},null,2),'application/json')}function exportCSV(){const rows=[['data','trening','ćwiczenie','seria','rodzaj','kg','powtórzenia','sekundy','kroki','RPE','kcal','tętno']];logs.forEach(l=>l.ex.forEach(e=>e.sets.forEach((s,i)=>rows.push([localDay(new Date(l.date)),l.name,e.name,i+1,e.type||'reps',s.kg||'',s.reps||'',s.seconds||'',s.steps||'',s.rpe||'',l.kcal||'',l.bpm||'']))));download(`treningi-${localDay()}.csv`,rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(';')).join('\n'),'text/csv;charset=utf-8')}function importJSON(ev){const f=ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.logs||!d.plans)throw Error();if(confirm(`Import zastąpi obecne dane (${logs.length} treningów). Kontynuować?`)){plans=d.plans;logs=d.logs;weights=d.weights||[];favorites=d.favorites||[];recentExercises=d.recentExercises||[];ownedGear=d.ownedGear||ownedGear;save();render()}}catch{alert('Nie udało się odczytać kopii zapasowej.')}};r.readAsText(f)}function gearSettings(){const all=['Hantle','Taśma','Mata','Masa ciała','Ławka','Step','Inne'],answer=prompt('Wpisz posiadany sprzęt, oddzielając przecinkami:',ownedGear.join(', '));if(answer){ownedGear=answer.split(',').map(x=>x.trim()).filter(Boolean);save();alert('Zapisano: '+ownedGear.join(', '))}}
 
 // --- v4: świadome liczenie obciążenia i stron, bez RPE ---
-function inferExerciseConfig(e){const n=(e.name||'').toLowerCase(),gear=e.gear||'';let equipment=gear==='Hantle'?'dumbbells':gear==='Sztanga'?'barbell':gear==='Kettlebell'?'kettlebell':gear==='Taśma'?'band':/masa ciała|mata/i.test(gear)?'bodyweight':'other';let implementCount=equipment==='dumbbells'?2:1;if(/z hantlem|goblet|russian twist|hip thrust|przysiad sumo|prostowanie ramion nad głową/.test(n))implementCount=1;let sideMode=/bułgarski|jednorącz|wykrok w tył|wejście na podwyższenie|odwodzenie nogi|prostowanie nogi|przywodzenie nogi|clamshell|donkey kick|side plank|bird dog|pallof|łydki|tyłu uda|przodu uda|zginacza biodra|figura 4|gołębia|wykrok boczny|skręt kręgosłupa|barku w poprzek|tricepsa|szyi na bok/.test(n)?'per_side':'together';if(/wykroki chodzone|mountain climber|naprzemiennie/.test(n))sideMode='alternating_total';return{equipment,loadMode:equipment==='dumbbells'?'per_item':equipment==='barbell'||equipment==='kettlebell'?'total':'none',implementCount,sideMode}}
+function inferExerciseConfig(e){const n=(e.name||'').toLowerCase(),gear=e.gear||'';let equipment=gear==='Hantle'?'dumbbells':gear==='Sztanga'?'barbell':gear==='Kettlebell'?'kettlebell':['Taśma','Mini band','Długa guma','Taśma otwarta'].includes(gear)?'band':/masa ciała|mata/i.test(gear)?'bodyweight':'other';let implementCount=equipment==='dumbbells'?2:1;if(/z hantlem|goblet|russian twist|hip thrust|przysiad sumo|prostowanie ramion nad głową/.test(n))implementCount=1;let sideMode=/bułgarski|jednorącz|wykrok w tył|wejście na podwyższenie|odwodzenie nogi|prostowanie nogi|przywodzenie nogi|clamshell|donkey kick|side plank|bird dog|pallof|łydki|tyłu uda|przodu uda|zginacza biodra|figura 4|gołębia|wykrok boczny|skręt kręgosłupa|barku w poprzek|tricepsa|szyi na bok/.test(n)?'per_side':'together';if(/wykroki chodzone|mountain climber|naprzemiennie/.test(n))sideMode='alternating_total';return{equipment,loadMode:equipment==='dumbbells'?'per_item':equipment==='barbell'||equipment==='kettlebell'?'total':'none',implementCount,sideMode}}
 function normalizeExercise(e){const inferred=inferExerciseConfig(e),profile=exerciseProfiles[e.name]||{};e.type=e.type||inferType(e.name,e.group);e.rest=e.rest||60;e.note=e.note||'';for(const k of ['equipment','loadMode','implementCount','sideMode'])if(e[k]===undefined||e[k]===null)e[k]=profile[k]??inferred[k];delete e.unilateral;(e.sets||[]).forEach(s=>{s.seconds=s.seconds||0;s.steps=s.steps||0;s.warmup=!!s.warmup;delete s.rpe});return e}
-function equipmentName(v){return({dumbbells:'hantle',barbell:'sztanga',kettlebell:'kettlebell',band:'taśma',bodyweight:'masa ciała',other:'inne'}[v]||'inne')}
+function equipmentName(v){return({dumbbells:'hantle',barbell:'sztanga',kettlebell:'kettlebell',band:'guma / taśma',bodyweight:'masa ciała',other:'inne'}[v]||'inne')}
 function sideName(v,type='reps'){const measure=type==='time'?'czas':'powtórzenia';return v==='per_side'?`${measure} na stronę`:v==='alternating_total'?`${measure} łącznie`:'obie strony jednocześnie'}
 function configSummary(e){normalizeExercise(e);const load=e.loadMode==='per_item'?(e.implementCount===2?'2 hantle · kg/hantel':'1 hantel · kg/hantel'):e.loadMode==='total'?`${equipmentName(e.equipment)} · ciężar łączny`:equipmentName(e.equipment);return`${load} · ${sideName(e.sideMode,e.type)}`}
 function loadMultiplier(e){return e.loadMode==='per_item'?Math.max(1,Number(e.implementCount)||1):e.loadMode==='total'?1:0}
@@ -159,5 +199,106 @@ function exportJSON(){download(`treningi-backup-${localDay()}.json`,JSON.stringi
 function exportCSV(){const rows=[['data','trening','ćwiczenie','seria','rodzaj','sprzęt','sposób ciężaru','liczba elementów','praca stron','kg','powtórzenia','sekundy','kroki','objętość zewnętrzna','kcal','tętno']];logs.forEach(l=>l.ex.forEach(e=>{normalizeExercise(e);e.sets.forEach((s,i)=>rows.push([localDay(new Date(l.date)),l.name,e.name,i+1,e.type||'reps',equipmentName(e.equipment),e.loadMode,e.implementCount,e.sideMode,s.kg||'',s.reps||'',s.seconds||'',s.steps||'',setVolume(e,s),l.kcal||'',l.bpm||'']))}));download(`treningi-${localDay()}.csv`,rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(';')).join('\n'),'text/csv;charset=utf-8')}
 function importJSON(ev){const f=ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.logs||!d.plans)throw Error();if(confirm(`Import zastąpi obecne dane (${logs.length} treningów). Kontynuować?`)){plans=d.plans;logs=d.logs;weights=d.weights||[];favorites=d.favorites||[];recentExercises=d.recentExercises||[];ownedGear=d.ownedGear||ownedGear;exerciseProfiles=d.exerciseProfiles||{};[...plans,...logs].forEach(p=>(p.ex||[]).forEach(normalizeExercise));save();render()}}catch{alert('Nie udało się odczytać kopii zapasowej.')}};r.readAsText(f)}
 function muscleIcon(g){return({Nogi:'◒',Pośladki:'◉',Plecy:'↟',Klatka:'◇',Barki:'△',Ramiona:'⌁',Core:'◎',Kondycja:'ϟ',Mobilność:'∞',Rozciąganie:'⌇',Własne:'✦'}[g]||'◆')}
+
+// Trzy realne typy gum: mini band, długa guma oporowa i płaska taśma otwarta.
+const BANDS_LIBRARY=[
+ ['Chód bokiem z miniband','Pośladki','Mini band'],['Monster walk z mini bandem','Pośladki','Mini band'],
+ ['Glute bridge z mini bandem','Pośladki','Mini band'],['Clamshell z mini bandem','Pośladki','Mini band'],
+ ['Odwodzenie kolan z mini bandem w siadzie','Pośladki','Mini band'],['Przysiad z mini bandem','Nogi','Mini band'],
+ ['Wiosłowanie długą gumą stojąc','Plecy','Długa guma'],['Face pull z długą gumą','Plecy','Długa guma'],
+ ['Pull-apart z długą gumą','Plecy','Długa guma'],['Ściąganie długiej gumy do klatki','Plecy','Długa guma'],
+ ['Pallof press z długą gumą','Core','Długa guma'],['Pallof press w wykroku z długą gumą','Core','Długa guma'],
+ ['Martwy ciąg z długą gumą','Pośladki','Długa guma'],['Uginanie ramion z długą gumą','Ramiona','Długa guma'],
+ ['Rozciąganie tyłu uda otwartą taśmą','Rozciąganie','Taśma otwarta'],
+ ['Wiosłowanie otwartą taśmą w siadzie','Plecy','Taśma otwarta'],
+ ['Pull-apart z otwartą taśmą','Plecy','Taśma otwarta'],
+ ['Rotacja zewnętrzna barków otwartą taśmą','Barki','Taśma otwarta'],
+ ['Wyciskanie otwartej taśmy przed klatkę','Klatka','Taśma otwarta'],
+ ['Prostowanie łokci z otwartą taśmą','Ramiona','Taśma otwarta']
+];
+BANDS_LIBRARY.forEach(([name,group,gear],i)=>{
+ const old=LIB.find(e=>e.name===name);
+ if(old)old.gear=gear;
+ else LIB.push({id:'band2026-'+i,name,group,gear});
+});
+Object.assign(EXERCISE_GUIDES,{
+ 'Chód bokiem z miniband':['Załóż mini band nad kolana, ustaw kolana lekko ugięte.','Rób krótkie kroki w bok i utrzymuj napięcie gumy.'],
+ 'Monster walk z mini bandem':['Załóż pętlę nad kolana i ustaw biodra lekko do tyłu.','Wykonuj naprzemienne kroki po skosie bez zapadania kolan.'],
+ 'Glute bridge z mini bandem':['Załóż pętlę nad kolana, połóż się ze stopami na podłodze.','Unieś biodra, utrzymuj lekki nacisk kolan na gumę.'],
+ 'Clamshell z mini bandem':['Połóż się na boku z ugiętymi nogami i gumą nad kolanami.','Unieś górne kolano bez obracania bioder.'],
+ 'Odwodzenie kolan z mini bandem w siadzie':['Usiądź stabilnie, załóż pętlę nad kolana.','Rozsuń kolana, nie odrywając stóp od podłoża.'],
+ 'Przysiad z mini bandem':['Załóż mini band nad kolana i ustaw stopy na szerokość bioder.','Zrób przysiad, utrzymując kolana w osi stóp.'],
+ 'Wiosłowanie długą gumą stojąc':['Zaczep długą gumę o sprawdzony, nieruchomy punkt na wysokości klatki.','Cofaj łokcie blisko tułowia, nie odchylając pleców.'],
+ 'Face pull z długą gumą':['Zamocuj długą gumę do stabilnego punktu na wysokości twarzy.','Przyciągaj dłonie ku skroniom, łokcie prowadź szeroko.'],
+ 'Pull-apart z długą gumą':['Trzymaj gumę przed sobą na wysokości klatki piersiowej.','Rozciągnij ją na boki, ściągając łopatki bez unoszenia barków.'],
+ 'Ściąganie długiej gumy do klatki':['Zaczep gumę wysoko o stabilny uchwyt i klęknij przodem.','Ściągaj łokcie w dół w kierunku boków żeber.'],
+ 'Pallof press z długą gumą':['Zamocuj długą gumę na wysokości mostka i stań bokiem do punktu zaczepu.','Wypchnij dłonie przed siebie, opierając się skręcaniu tułowia.'],
+ 'Pallof press w wykroku z długą gumą':['Stań bokiem do stabilnego mocowania i ustaw wykrok.','Wypchnij dłonie do przodu bez obracania bioder.'],
+ 'Martwy ciąg z długą gumą':['Stań na środku gumy, końce trzymaj w dłoniach.','Cofnij biodra i wyprostuj się, utrzymując neutralne plecy.'],
+ 'Uginanie ramion z długą gumą':['Stań na środku gumy, końce trzymaj w dłoniach.','Zginaj łokcie przy tułowiu, bez kołysania się.'],
+ 'Rozciąganie tyłu uda otwartą taśmą':['Leżąc na plecach załóż środek taśmy na stopę uniesionej nogi.','Delikatnie przyciągaj nogę, nie szarpiąc za końce taśmy.'],
+ 'Wiosłowanie otwartą taśmą w siadzie':['Usiądź prosto, przełóż taśmę pod stopami i chwyć jej końce.','Przyciągaj łokcie ku tyłowi, utrzymując stabilne plecy.'],
+ 'Pull-apart z otwartą taśmą':['Trzymaj płaską taśmę przed klatką piersiową.','Powoli rozciągnij na boki, zachowując spokojny oddech.'],
+ 'Rotacja zewnętrzna barków otwartą taśmą':['Trzymaj łokcie przy żebrach, zgięte w kącie prostym.','Rozciągaj taśmę przez obrót przedramion na zewnątrz.'],
+ 'Wyciskanie otwartej taśmy przed klatkę':['Owiń płaską taśmę za górną częścią pleców, trzymaj końce.','Prostuj ręce przed sobą, nie wyginając lędźwi.'],
+ 'Prostowanie łokci z otwartą taśmą':['Trzymaj napiętą taśmę w stabilnej pozycji, jeden koniec zabezpieczony.','Prostuj przedramię bez unoszenia barku.']
+});
+
+// Katalog sprzętu i gotowe plany. Nie nadpisujemy planów zapisanych przez użytkownika.
+ownedGear=['Hantle','Mini band','Długa guma','Taśma otwarta','Taśma','Drążek','Mata','Masa ciała'];
+const gearPlans=[
+ {id:'equip-full-2026',name:'Całe ciało · domowy sprzęt',focus:'Hantle 2/5 kg · gumy · 35–45 min',minutes:40,items:[['Goblet squat','Nogi','Hantle',3,12,5],['Wiosłowanie hantlami','Plecy','Hantle',3,12,5],['Glute bridge z mini bandem','Pośladki','Mini band',3,15,0],['Wyciskanie hantli na podłodze','Klatka','Hantle',3,10,2],['Pallof press z długą gumą','Core','Długa guma',3,10,0]]},
+ {id:'equip-core-2026',name:'Brzuch · stabilizacja',focus:'Bez maszyn · taśma · 20–30 min',minutes:27,items:[['Dead bug','Core','Mata',3,10,0],['Rewersy (reverse crunch)','Core','Mata',3,12,0],['Plank','Core','Mata',3,1,0],['Pallof press z długą gumą','Core','Długa guma',3,10,0],['Side plank','Core','Mata',2,1,0],['Dotykanie barków w podporze','Core','Masa ciała',2,12,0]]},
+ {id:'equip-back-2026',name:'Plecy · drążek i gumy',focus:'Długa guma · otwarta taśma · drążek · 25–35 min',minutes:30,items:[['Wiosłowanie długą gumą stojąc','Plecy','Długa guma',3,12,0],['Ściąganie łopatek w zwisie','Plecy','Drążek',3,6,0],['Face pull z długą gumą','Plecy','Długa guma',3,12,0],['Wiosłowanie jednorącz','Plecy','Hantle',3,12,5],['Suitcase carry z hantlem','Core','Hantle',3,1,5]]},
+ {id:'equip-legs-2026',name:'Nogi i pośladki',focus:'Hantle 5 kg · miniband · 30–40 min',minutes:35,items:[['Przysiad z hantlem','Nogi','Hantle',3,12,5],['Rumuński martwy ciąg','Pośladki','Hantle',3,12,5],['Wykrok w tył','Nogi','Hantle',3,10,2],['Chód bokiem z miniband','Pośladki','Mini band',3,12,0],['Glute bridge','Pośladki','Masa ciała',3,15,0]]}
+];
+gearPlans.forEach(x=>{if(plans.some(p=>p.id===x.id))return;const ex=x.items.map(([n,g,gear,count,reps,kg])=>{const e=makeEx(n,g,gear,count,reps,kg);e.rest=50;if(['Plank','Side plank','Suitcase carry z hantlem'].includes(n)){e.type='time';e.sets.forEach(v=>{v.seconds=n==='Plank'?30:25;v.reps=0})}if(/Pallof|Side plank|jednorącz|Suitcase/.test(n))e.sideMode='per_side';return e});plans.push({id:x.id,name:x.name,focus:x.focus,minutes:x.minutes,ex})});
+// Migracja wyłącznie błędnego, fabrycznego planu TRX; nie modyfikujemy prywatnych planów.
+plans.forEach(p=>{
+ if(p.id==='equip-back-2026'){
+  p.name='Plecy · drążek i gumy';p.focus='Długa guma · taśma otwarta · drążek';
+  (p.ex||[]).forEach(e=>{
+   if(e.name==='Wiosłowanie w szarfach'){e.name='Wiosłowanie długą gumą stojąc';e.gear='Długa guma';e.equipment='band';e.loadMode='none'}
+   if(e.name==='Face pull'){e.name='Face pull z długą gumą';e.gear='Długa guma';e.equipment='band';e.loadMode='none'}
+  });
+ }
+});
+localStorage.setItem('hwt-owned-gear',JSON.stringify(ownedGear));
+localStorage.setItem('hwt-plans',JSON.stringify(plans));
+let treadmillSessions=(()=>{try{return JSON.parse(localStorage.getItem('hwt-treadmill')||'[]')}catch{return []}})();
+const saveTreadmill=()=>localStorage.setItem('hwt-treadmill',JSON.stringify(treadmillSessions));
+const toNum=v=>Number(String(v||'').replace(',','.'))||0;
+function treadmillPage(){
+ const now=localDay(),thisMonth=now.slice(0,7),month=treadmillSessions.filter(x=>x.date.startsWith(thisMonth));
+ const sum=(a,k)=>a.reduce((n,x)=>n+(+x[k]||0),0), km=sum(month,'km'),steps=sum(month,'steps'),minutes=sum(month,'minutes');
+ const ordered=[...treadmillSessions].sort((a,b)=>b.date.localeCompare(a.date));
+ page('Bieżnia','MARSZ · BIEG · KROKI',`
+ <p class="lead">Zapisuj treningi z bieżni i obserwuj progres. Dane wpisujesz ręcznie — strona na iPhonie nie odczytuje automatycznie kroków ani danych z Apple Health.</p>
+ <div class="tread-kpis"><article><small>TEN MIESIĄC · DYSTANS</small><strong>${km.toFixed(2)} <em>km</em></strong></article><article><small>KROKI</small><strong>${steps.toLocaleString('pl-PL')}</strong></article><article><small>CZAS</small><strong>${minutes} <em>min</em></strong></article></div>
+ <form id="tread-form" class="tread-form"><h2>Dodaj aktywność</h2><div class="tread-grid">
+ <label>Data<input type="date" name="date" value="${now}" required></label><label>Rodzaj<select name="kind"><option value="Marsz">Marsz</option><option value="Bieg">Bieg</option><option value="Interwały">Interwały</option></select></label>
+ <label>Czas (min)<input type="number" min="1" max="600" step="1" name="minutes" required placeholder="30"></label><label>Dystans (km)<input type="number" min="0" max="200" step="0.01" inputmode="decimal" name="km" placeholder="3.2"></label>
+ <label>Kroki<input type="number" min="0" max="100000" step="1" name="steps" placeholder="4200"></label><label>Śr. prędkość (km/h)<input type="number" min="0" max="30" step="0.1" name="speed" placeholder="6.0"></label>
+ <label>Nachylenie (%)<input type="number" min="0" max="30" step="0.5" name="incline" placeholder="0"></label><label>Samopoczucie<select name="effort"><option value="Lekko">Lekko</option><option value="Umiarkowanie">Umiarkowanie</option><option value="Ciężko">Ciężko</option></select></label></div>
+ <label>Notatka<input name="note" maxlength="250" placeholder="Np. szybszy marsz po rozgrzewce"></label><button type="submit" class="primary wide">＋ Zapisz aktywność</button>
+ <p class="tread-hint">Wpisz kroki z licznika bieżni lub aplikacji Zdrowie. Dystans i prędkość mogą być orientacyjne. Brak danych pozostaje pusty — niczego nie zgadujemy.</p></form>
+ <div class="section-title"><div><small>OSTATNIE SESJE</small><h2>Historia bieżni</h2></div></div>
+ ${ordered.length?`<div class="tread-history">${ordered.map(x=>`<article class="tread-entry"><div><small>${esc(x.date)} · ${esc(x.kind)}</small><h3>${x.km?x.km.toFixed(2)+' km':'Bez dystansu'} · ${x.minutes} min</h3><p>${x.steps?x.steps.toLocaleString('pl-PL')+' kroków · ':''}${x.speed?x.speed+' km/h · ':''}${esc(x.effort||'')}${x.note?' · '+esc(x.note):''}</p></div><button class="tread-delete" data-id="${esc(x.id)}" aria-label="Usuń wpis">×</button></article>`).join('')}</div>`:`<div class="tread-empty">Nie ma jeszcze zapisanych spacerów ani biegów. Dodaj pierwszy trening powyżej.</div>`}
+ <button id="tread-csv" class="outline">Eksport historii bieżni (CSV)</button>`);
+ document.querySelector('#tread-form').onsubmit=ev=>{ev.preventDefault();const d=new FormData(ev.currentTarget),minutes=toNum(d.get('minutes')),km=toNum(d.get('km')),speed=toNum(d.get('speed'));
+ if(minutes<1)return alert('Podaj czas treningu.');treadmillSessions.push({id:uid(),date:String(d.get('date')),kind:String(d.get('kind')),minutes,km:km||(speed?Number((speed*minutes/60).toFixed(2)):0),steps:toNum(d.get('steps')),speed:speed||(km?Number((km*60/minutes).toFixed(1)):0),incline:toNum(d.get('incline')),effort:String(d.get('effort')),note:String(d.get('note')).slice(0,250)});saveTreadmill();render()};
+ document.querySelectorAll('.tread-delete').forEach(b=>b.onclick=()=>{if(confirm('Usunąć ten wpis z bieżni?')){treadmillSessions=treadmillSessions.filter(x=>x.id!==b.dataset.id);saveTreadmill();render()}});
+ document.querySelector('#tread-csv').onclick=()=>{const rows=[['data','rodzaj','czas_min','dystans_km','kroki','predkosc_kmh','nachylenie_pct','odczucie','notatka'],...ordered.map(x=>[x.date,x.kind,x.minutes,x.km,x.steps,x.speed,x.incline,x.effort,x.note])];download(`bieznia-${localDay()}.csv`,rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(';')).join('\n'),'text/csv;charset=utf-8')};
+}
+const renderWithoutTreadmill=render;
+render=function(){if(tab==='treadmill'){document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab==='treadmill'));treadmillPage();return}renderWithoutTreadmill()};
+const bindWithoutTreadmill=bind;
+bind=function(){bindWithoutTreadmill();document.querySelector('[data-tab="treadmill"]')?.addEventListener('click',()=>{tab='treadmill';view=null;render()})};
+document.querySelector('#nav').insertAdjacentHTML('beforeend','<button data-tab="treadmill">↗<span>Bieżnia</span></button>');
+const oldExportForTreadmill=exportJSON;
+exportJSON=function(){download(`treningi-backup-${localDay()}.json`,JSON.stringify({version:5,exportedAt:new Date().toISOString(),plans,logs,weights,favorites,recentExercises,ownedGear,exerciseProfiles,treadmillSessions},null,2),'application/json')};
+const previousImportForTreadmill=importJSON;
+importJSON=function(ev){const file=ev.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{try{const d=JSON.parse(reader.result);if(!Array.isArray(d.plans)||!Array.isArray(d.logs))throw Error('Invalid backup');if(!confirm('Import zastąpi plany, historię ćwiczeń i wpisy bieżni. Kontynuować?'))return;plans=d.plans;logs=d.logs;weights=d.weights||[];favorites=d.favorites||[];recentExercises=d.recentExercises||[];ownedGear=d.ownedGear||ownedGear;exerciseProfiles=d.exerciseProfiles||{};treadmillSessions=Array.isArray(d.treadmillSessions)?d.treadmillSessions:[];[...plans,...logs].forEach(p=>(p.ex||[]).forEach(normalizeExercise));save();saveTreadmill();render()}catch{alert('Nieprawidłowy plik kopii zapasowej.')}};reader.readAsText(file)};
+
 if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 save();render();

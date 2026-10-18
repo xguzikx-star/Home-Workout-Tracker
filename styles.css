@@ -59,3 +59,12 @@ main>section{animation:content-in .3s cubic-bezier(.2,.7,.2,1) both}
  nav{padding-bottom:env(safe-area-inset-bottom)}
 }
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+/* Bieżnia — układ mobilny */
+#nav button{min-width:0;flex:1}#nav button span{white-space:nowrap;font-size:10px}
+.tread-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:16px 0}
+.tread-kpis article,.tread-form,.tread-entry,.tread-empty{background:var(--card);border:1px solid var(--line);border-radius:17px;padding:15px}
+.tread-kpis strong{display:block;font-size:22px;color:var(--green);padding-top:10px;overflow-wrap:anywhere}.tread-kpis small{font-size:9px;line-height:1.4;color:var(--muted)}.tread-kpis em{font-size:11px;font-style:normal}
+.tread-form{margin:20px 0;display:grid;gap:15px}.tread-form h2{margin:0}.tread-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.tread-form label{display:grid;gap:6px;font-size:12px;color:var(--muted)}.tread-form input,.tread-form select{min-width:0;width:100%;border:1px solid var(--line);border-radius:10px;background:var(--card2);color:var(--text);padding:12px;font-size:16px}.tread-form button{width:100%;padding:13px}.tread-hint{font-size:12px;color:var(--muted);line-height:1.5}.tread-history{display:grid;gap:9px}.tread-entry{display:flex;align-items:center;justify-content:space-between;gap:8px}.tread-entry h3{margin:7px 0}.tread-entry p{color:var(--muted);margin:0;font-size:12px;line-height:1.5}.tread-entry small{color:var(--green)}.tread-delete{font-size:24px;flex:0 0 40px}.tread-empty{color:var(--muted);margin:18px 0}.tread-form .primary{background:var(--green);color:#071619}
+@media(max-width:420px){.tread-kpis article{padding:9px}.tread-kpis strong{font-size:19px}.tread-grid{gap:9px}.tread-form{padding:12px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
