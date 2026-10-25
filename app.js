@@ -404,14 +404,7 @@ function smartWorkoutControls(){
    btn.onclick=()=>{syncActiveInputs();const value=prompt('Przerwa po serii (sekundy, 0–300):',String(e.rest??60));if(value===null)return;const n=Number(value);if(!Number.isFinite(n)||n<0||n>300)return alert('Podaj wartość od 0 do 300 sekund.');e.rest=Math.round(n);persistDraft();workout()};
    title.appendChild(btn);
   }
-  card.querySelectorAll('.set-row').forEach((row,si)=>{
-   if(row.querySelector('.workout-rpe'))return;
-   const btn=document.createElement('button');btn.type='button';btn.className='workout-rpe';
-   const val=e.sets[si]?.rpe;btn.textContent=(val!==undefined&&val!==null&&val!=='')?`RPE ${val}`:'RPE —';
-   btn.title='Ocena wysiłku serii (0–10)';
-   btn.onclick=()=>{syncActiveInputs();const input=prompt('Trudność tej serii RPE (0–10; puste = brak oceny):',String(e.sets[si].rpe??''));if(input===null)return;const n=Number(input.replace(',','.'));if(input.trim()!==''&&(!Number.isFinite(n)||n<0||n>10))return alert('RPE powinno być od 0 do 10.');e.sets[si].rpe=input.trim()===''?'':n;persistDraft();workout()};
-   row.appendChild(btn);
-  });
+
  });
 }
 function openWorkoutSwap(index){
