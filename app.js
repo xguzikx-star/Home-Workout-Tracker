@@ -402,7 +402,8 @@ function smartWorkoutControls(){
    const btn=document.createElement('button');btn.type='button';btn.className='workout-rest-setting';
    btn.textContent=`Przerwa ${Number(e.rest)||60} s`;btn.title='Zmień długość przerwy';
    btn.onclick=()=>{syncActiveInputs();const value=prompt('Przerwa po serii (sekundy, 0–300):',String(e.rest??60));if(value===null)return;const n=Number(value);if(!Number.isFinite(n)||n<0||n>300)return alert('Podaj wartość od 0 do 300 sekund.');e.rest=Math.round(n);persistDraft();workout()};
-   title.appendChild(btn);
+   const details=title.querySelector(':scope > div');
+   if(details){const row=document.createElement('div');row.className='workout-rest-row';row.appendChild(btn);details.appendChild(row)}else{title.appendChild(btn)}
   }
 
  });
@@ -440,7 +441,19 @@ renderRest=function(){renderRestBeforeSmartControls();const el=document.querySel
 };
 document.head.insertAdjacentHTML('beforeend',`<style>
 .workout-rest-setting,.workout-rpe{font-size:12px;border:1px solid rgba(115,137,145,.4);border-radius:10px;padding:7px 9px;background:transparent;color:inherit}
-.workout-rest-setting{margin-left:auto;white-space:nowrap}.workout-rpe{margin:4px 2px;white-space:nowrap}
+/* Mobile exercise header: keep name, metadata and controls on separate lines. */
+.active-card .active-title{display:grid;grid-template-columns:40px minmax(0,1fr) auto;column-gap:12px;align-items:start}
+.active-card .active-title>i{margin:0;align-self:start}
+.active-card .active-title>div{min-width:0;width:100%;display:flex;flex-direction:column;align-items:flex-start;gap:5px}
+.active-card .active-title .exercise-history{display:block;max-width:100%;min-width:0;text-align:left;overflow-wrap:anywhere}
+.active-card .active-title .exercise-history h2{display:block;line-height:1.25;margin:0;font-size:clamp(17px,4vw,22px);white-space:normal;overflow-wrap:anywhere}
+.active-card .active-title>div>small{display:block;line-height:1.45;overflow-wrap:anywhere;max-width:100%;margin:0}
+.active-card .active-title>.remove-active{grid-column:3;grid-row:1;justify-self:end;align-self:start;min-width:36px;min-height:36px}
+.active-card .workout-rest-row{width:100%;margin-top:5px;display:flex;align-items:center;justify-content:flex-start}
+.active-card .workout-rest-setting{margin:0;padding:8px 12px;border:1px solid #42574c;border-radius:9px;background:#1b3228;color:var(--green);font-size:12px;line-height:1.2;white-space:normal;text-align:left}
+.workout-rpe{margin:4px 2px;white-space:nowrap}
+@media(max-width:420px){.active-card .active-title{grid-template-columns:34px minmax(0,1fr) 34px;column-gap:9px;padding:13px 11px}.active-card .active-title>i{width:34px;height:34px;font-size:17px}.active-card .active-title .exercise-history h2{font-size:18px}.active-card .active-title>.remove-active{min-width:30px;min-height:30px}}
+
 .workout-swap-overlay{position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.65);display:flex;justify-content:center;align-items:center;padding:12px}
 .workout-swap-pane{background:var(--bg,#f8f8f6);color:var(--text,#222);border-radius:16px;padding:20px;max-width:560px;width:100%;max-height:88vh;display:flex;flex-direction:column;gap:12px}
 .workout-swap-pane h2{margin:0}.workout-swap-pane p{font-size:13px;line-height:1.45}.workout-swap-pane input{padding:12px;border:1px solid #a5aca9;border-radius:9px;width:100%;font-size:16px}
