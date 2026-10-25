@@ -628,3 +628,55 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 .picker .atlas-selectors select{width:100%;max-width:100%;min-height:42px;margin-top:5px;border-radius:10px}
 @media(max-width:380px){.picker .atlas-selectors{grid-template-columns:1fr}}
 </style>`);
+
+
+// v20: Koksik – nienachalny trener. Osobny moduł prezentacyjny, bez zmian w danych ćwiczeń.
+const KOKSIK_QUOTES = {
+  home: ['No to jedziemy. Wymówki zostają za drzwiami.', 'Tęskniłaś? Nie? Trudno. Trening i tak czeka.', 'Forma sama się nie zrobi. Niestety.'],
+  workout: ['Jeszcze parę powtórzeń. Dasz radę, nie dramatyzuj.', 'Technika najpierw. Ego może poczekać.'],
+  rest: ['Odpoczynek? Spoko. Ale nie na zawsze.', 'Oddychaj. To część planu, nie wakacje.'],
+  finish: ['No i pięknie. Możesz teraz oficjalnie narzekać.', 'Zrobione. Nie mów, że nie potrafisz.'],
+  record: ['O proszę. Jednak te mięśnie nie są tylko dekoracją.']
+};
+let koksikMuted=localStorage.getItem('hwt-koksik-muted')==='1';
+function koksikMessage(mode){
+  if(mode==='workout' && restEnd>Date.now())mode='rest';
+  const done=active?.ex?.reduce((a,e)=>a+(e.sets||[]).filter(s=>s.done&&!s.warmup).length,0)||0;
+  if(mode==='workout'&&done>=3)return 'Trzy serie za Tobą. Zaczyna to wyglądać poważnie.';
+  const pool=KOKSIK_QUOTES[mode]||KOKSIK_QUOTES.home;
+  const sessionKey=mode==='home'?localDay():mode+':'+Math.floor(done/2);
+  let hash=0;for(const ch of sessionKey)hash=(hash*31+ch.charCodeAt(0))>>>0;
+  return pool[hash%pool.length];
+}
+function koksikCard(mode){
+ const title=mode==='home'?'Koksik czeka':mode==='workout'?'Koksik dopinguje':'Koksik podsumowuje';
+ return `<aside class="koksik-card" aria-label="Koksik — trener motywacyjny">
+ <img class="koksik-avatar" src="./koksik.png" alt="Koksik, panda ruda w czarnej bluzie">
+ <div class="koksik-copy"><span class="koksik-eyebrow">TWÓJ SARKASTYCZNY TRENER</span><strong>${title}</strong><p class="koksik-quote">${koksikMuted?'Koksik ma dziś wolne od komentarzy.':esc(koksikMessage(mode))}</p></div>
+ <button type="button" class="koksik-mute" aria-label="${koksikMuted?'Włącz komentarze Koksika':'Wycisz komentarze Koksika'}" aria-pressed="${koksikMuted}">${koksikMuted?'Włącz':'Wycisz'}</button></aside>`;
+}
+function koksikMount(mode){
+ const root=document.querySelector('#app section');if(!root||root.querySelector('.koksik-card'))return;
+ const anchor=(mode==='workout'?(root.querySelector('.active-card')||root.querySelector('.page-head')):root.querySelector('.page-head'));
+ if(!anchor)return;
+ anchor.insertAdjacentHTML(mode==='workout'?'beforebegin':'afterend',koksikCard(mode));
+ root.querySelector('.koksik-mute')?.addEventListener('click',()=>{
+  koksikMuted=!koksikMuted;localStorage.setItem('hwt-koksik-muted',koksikMuted?'1':'0');
+  const card=root.querySelector('.koksik-card');if(card)card.outerHTML=koksikCard(mode);
+  root.querySelector('.koksik-mute')?.addEventListener('click',()=>{koksikMuted=!koksikMuted;localStorage.setItem('hwt-koksik-muted',koksikMuted?'1':'0');render()});
+ });
+}
+const homeWithoutKoksik=home;home=function(){homeWithoutKoksik();koksikMount('home')};
+const workoutWithoutKoksik=workout;workout=function(){workoutWithoutKoksik();koksikMount('workout')};
+const finishWithoutKoksik=finishPage;finishPage=function(){finishWithoutKoksik();koksikMount('finish')};
+document.head.insertAdjacentHTML('beforeend',`<style>
+.koksik-card{display:flex;align-items:center;gap:12px;background:#19262d;border:1px solid rgba(176,217,165,.18);border-radius:18px;margin:14px 0 22px;padding:12px;min-width:0;color:#ecf0ea;font-family:inherit}
+.koksik-avatar{width:72px;height:76px;flex:0 0 72px;object-fit:cover;object-position:center 31%;border-radius:14px;background:#f6e9dd}
+.koksik-copy{min-width:0;flex:1}.koksik-eyebrow{display:block;color:#a5bdaf;font-size:9px;letter-spacing:.13em;font-weight:700;margin-bottom:4px}
+.koksik-copy strong{display:block;font-size:15px;font-weight:750;line-height:1.22;letter-spacing:-.025em}
+.koksik-quote{margin:5px 0 0;font-size:12px!important;line-height:1.5;color:#d6e0d9;overflow-wrap:anywhere}
+.koksik-mute{align-self:flex-start;font:inherit!important;font-size:11px!important;color:#baf083!important;background:transparent!important;border:0!important;padding:7px 4px!important;min-height:32px;min-width:40px;cursor:pointer}
+.koksik-mute:focus-visible{outline:2px solid #baf083;outline-offset:2px;border-radius:6px}
+@media(max-width:380px){.koksik-card{gap:9px;padding:10px}.koksik-avatar{width:56px;height:66px;flex-basis:56px}.koksik-copy strong{font-size:14px}.koksik-quote{font-size:11px!important}}
+</style>`);
+render();
