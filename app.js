@@ -699,3 +699,111 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 @media(prefers-reduced-motion:no-preference){.koksik-v22[data-scene="record"] .koksik-v22-art img{animation:koksik-v22-pop .42s ease-out}@keyframes koksik-v22-pop{0%{transform:scale(.90)}75%{transform:scale(1.05)}100%{transform:scale(1)}}}
 </style>`);
 render();
+
+
+// v23 — sceniczna prezentacja Koksika i pełnoekranowa przerwa.
+// Nakładka jest elementem DOM, a nie obrazem całego widoku. Sterowanie i licznik pozostają dostępne.
+let koksikRestPaused=false,koksikRestRemaining=0,koksikRestAnnouncement=false;
+let koksikRecordToastTimer=0;
+function koksikClock(seconds){const t=Math.max(0,Math.ceil(seconds));return `${String(Math.floor(t/60)).padStart(2,'0')}:${String(t%60).padStart(2,'0')}`}
+function koksikRestDispose(){document.querySelector('#rest-float')?.remove();document.querySelector('#koksik-rest-screen')?.remove();document.body.classList.remove('koksik-rest-open');koksikRestAnnouncement=false;}
+function koksikShowRest(){
+ if(!active||view!=='workout')return;
+ let layer=document.querySelector('#koksik-rest-screen');
+ if(!layer){
+  layer=document.createElement('div');layer.id='koksik-rest-screen';layer.className='koksik-rest-screen';layer.setAttribute('role','dialog');layer.setAttribute('aria-label','Przerwa między seriami');
+  layer.innerHTML=`<div class="krs-shade"></div><section class="krs-content">
+   <div class="krs-top"><span>KOKSIK · CZAS NA REGENERACJĘ</span><button type="button" class="krs-close" data-krs="skip" aria-label="Zakończ przerwę">×</button></div>
+   <div class="krs-visual"><img src="./koksik-scene-rest.png" alt="Koksik odpoczywa po wysiłku"></div>
+   <h2>Chwila oddechu.</h2><p class="krs-message">Nie uciekaj. Jeszcze wracamy do roboty.</p>
+   <div class="krs-timer" role="timer" aria-label="Pozostały czas przerwy">00:00</div>
+   <div class="krs-progress" aria-hidden="true"><div></div></div>
+   <div class="krs-controls"><button type="button" data-krs="minus">−15 s</button><button type="button" data-krs="pause" class="krs-pause">Pauza</button><button type="button" data-krs="plus">+15 s</button></div>
+   <button type="button" class="krs-skip" data-krs="skip">Pomiń przerwę</button>
+   </section>`;
+  document.body.appendChild(layer);document.body.classList.add('koksik-rest-open');
+  layer.querySelectorAll('[data-krs]').forEach(button=>button.addEventListener('click',()=>{
+   const cmd=button.dataset.krs;
+   if(cmd==='skip'){restEnd=0;koksikRestPaused=false;koksikRestRemaining=0;renderRest();return}
+   if(cmd==='pause'){
+    if(koksikRestPaused){restEnd=Date.now()+koksikRestRemaining*1000;koksikRestPaused=false}
+    else{koksikRestRemaining=Math.max(0,Math.ceil((restEnd-Date.now())/1000));koksikRestPaused=true}
+   }else if(koksikRestPaused){koksikRestRemaining=Math.max(1,koksikRestRemaining+(cmd==='plus'?15:-15))}
+   else restEnd=Math.max(Date.now()+1000,restEnd+(cmd==='plus'?15000:-15000));
+   renderRest();
+  }));
+ }
+ const left=koksikRestPaused?koksikRestRemaining:Math.max(0,Math.ceil((restEnd-Date.now())/1000));
+ layer.querySelector('.krs-timer').textContent=koksikClock(left);
+ const pause=layer.querySelector('.krs-pause');pause.textContent=koksikRestPaused?'Wznów':'Pauza';
+ layer.querySelector('.krs-progress div').style.width=`${Math.max(0,Math.min(100,100*(1-left/Math.max(left,Number(layer.dataset.initial)||1))))}%`;
+ if(!layer.dataset.initial)layer.dataset.initial=String(left);
+}
+const koksikOriginalStartRest=startRest;
+startRest=function(seconds){
+ if(!seconds)return;
+ koksikRestPaused=false;koksikRestRemaining=0;restEnd=Date.now()+Number(seconds)*1000;
+ clearInterval(restTimer);restTimer=setInterval(renderRest,250);renderRest();
+};
+renderRest=function(){
+ const remaining=koksikRestPaused?koksikRestRemaining:Math.ceil((restEnd-Date.now())/1000);
+ document.querySelector('#rest-float')?.remove();
+ if(remaining<=0){clearInterval(restTimer);restEnd=0;koksikRestPaused=false;koksikRestDispose();if(view==='workout')koksikRefresh('workout');return}
+ if(view!=='workout'||!active){koksikRestDispose();return}
+ koksikShowRest();
+};
+const koksikRenderV23=render;
+render=function(){koksikRenderV23();if(restEnd>Date.now()||koksikRestPaused)renderRest();else koksikRestDispose()};
+const koksikFinishV23=finishPage;
+finishPage=function(){koksikRestDispose();koksikFinishV23()};
+const koksikCheckRecordV23=checkRecord;
+checkRecord=function(e,s){
+ const before=koksikRecordAt;
+ koksikCheckRecordV23(e,s);
+ if(koksikRecordAt>before){
+  clearTimeout(koksikRecordToastTimer);document.querySelector('#koksik-record-toast')?.remove();
+  const toast=document.createElement('div');toast.id='koksik-record-toast';toast.className='koksik-record-toast';toast.setAttribute('role','status');
+  toast.innerHTML=`<img src="./koksik-scene-record.png" alt="Koksik świętuje rekord"><div><strong>Nowy rekord!</strong><span>O proszę. Jednak się da.</span></div><button type="button" aria-label="Zamknij powiadomienie">×</button>`;
+  toast.querySelector('button').onclick=()=>toast.remove();document.body.appendChild(toast);
+  koksikRecordToastTimer=setTimeout(()=>toast.remove(),4500);
+ }
+};
+const koksikWorkoutV23=workout;
+workout=function(){koksikWorkoutV23();if(restEnd>Date.now()||koksikRestPaused)renderRest()};
+// Nie modyfikujemy planów, historii ani formatu lokalnych danych.
+document.head.insertAdjacentHTML('beforeend',`<style>
+/* Koksik: integracja wizualna bez prostokątnych ramek wokół ilustracji */
+.koksik-v22{background:#12212a;border:1px solid #283e45;box-shadow:none;isolation:isolate}
+.koksik-v22-art{background:transparent;overflow:hidden}
+.koksik-v22-art img{object-fit:contain!important;object-position:center bottom!important;width:100%;height:100%;-webkit-mask-image:radial-gradient(ellipse 73% 67% at 50% 54%,#000 58%,transparent 100%);mask-image:radial-gradient(ellipse 73% 67% at 50% 54%,#000 58%,transparent 100%)}
+.koksik-v22-small{background:linear-gradient(95deg,#172b32,#10202a);min-height:90px}
+.koksik-v22-finale{display:flex;min-height:260px;padding:26px 20px 26px 43%;overflow:hidden;background:#111f28}
+.koksik-v22-finale .koksik-v22-art{position:absolute;inset:0 58% 0 0;min-height:0}
+.koksik-v22-finale .koksik-v22-art img{width:100%;height:100%;max-height:none;object-fit:cover!important;object-position:center!important;mask-image:linear-gradient(to right,#000 65%,transparent 100%);-webkit-mask-image:linear-gradient(to right,#000 65%,transparent 100%)}
+.koksik-v22-finale .koksik-v22-content{position:relative;padding:20px 38px 20px 0;z-index:1}
+.koksik-v22-content strong{letter-spacing:-.025em}
+.koksik-rest-open{overflow:hidden!important}
+.koksik-rest-screen{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;background:#08151c;color:#f6f8f8;font-family:inherit;animation:krsAppear .2s ease-out}
+.krs-shade{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 30%,#20353a 0%,#09151c 72%)}
+.krs-content{position:relative;width:min(100%,500px);height:100%;max-height:980px;display:flex;align-items:center;flex-direction:column;text-align:center;padding:max(24px,env(safe-area-inset-top)) 24px max(28px,env(safe-area-inset-bottom));overflow-y:auto}
+.krs-top{display:flex;justify-content:space-between;align-items:center;width:100%;font-size:11px;letter-spacing:.14em;color:#abc2bf;font-weight:750;text-align:left;min-height:46px}
+.krs-close{border:1px solid #46616c!important;background:#15262f!important;border-radius:50%!important;width:43px;height:43px;min-height:43px;color:#e7eeee!important;font-size:27px!important;line-height:1}
+.krs-visual{position:relative;flex:1 1 220px;min-height:155px;max-height:400px;width:min(100%,460px);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.krs-visual img{display:block;width:100%;height:100%;object-fit:contain;object-position:center;-webkit-mask-image:radial-gradient(ellipse 70% 75% at 50% 52%,#000 53%,transparent 100%);mask-image:radial-gradient(ellipse 70% 75% at 50% 52%,#000 53%,transparent 100%);animation:krsFloat 3.7s ease-in-out infinite}
+.krs-content h2{font-size:clamp(26px,7vw,38px);line-height:1.1;letter-spacing:-.04em;margin:12px 0 7px;font-weight:850}
+.krs-message{font-size:15px!important;line-height:1.4!important;color:#b5c7c8!important;margin:0 0 16px!important}
+.krs-timer{font-size:clamp(74px,21vw,116px);line-height:1;font-weight:850;letter-spacing:-.075em;font-variant-numeric:tabular-nums;color:#b6f77b;margin:4px 0 20px}
+.krs-progress{background:#31454a;width:100%;height:8px;border-radius:999px;overflow:hidden;margin:0 0 23px}.krs-progress>div{height:100%;background:#b6f77b;border-radius:999px;transition:width .25s linear}
+.krs-controls{width:100%;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:0 0 14px}
+.krs-controls button{font-size:16px!important;font-weight:700!important;padding:14px 6px!important;min-height:52px;border:1px solid #3e5963!important;border-radius:14px!important;background:#142833!important;color:#edf5f5!important}
+.krs-controls .krs-pause{background:#243a34!important;color:#b6f77b!important}
+.krs-skip{width:100%;min-height:54px;border-radius:15px!important;background:#b6f77b!important;color:#11201b!important;font-weight:800!important;font-size:16px!important;margin-bottom:12px}
+.koksik-record-toast{position:fixed;top:max(78px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:2147483001;width:min(calc(100% - 32px),420px);display:flex;align-items:center;gap:13px;padding:8px 12px;background:#162933;border:1px solid #51735b;border-radius:20px;box-shadow:0 14px 40px #0009;color:#f7faf7;animation:krsAppear .3s ease-out}
+.koksik-record-toast img{width:84px;height:74px;object-fit:contain;mask-image:radial-gradient(ellipse at center,#000 48%,transparent 76%);-webkit-mask-image:radial-gradient(ellipse at center,#000 48%,transparent 76%)}
+.koksik-record-toast div{display:flex;flex-direction:column;gap:3px;flex:1}.koksik-record-toast strong{font-size:17px}.koksik-record-toast span{font-size:12px;color:#becdce}.koksik-record-toast button{border:0!important;background:none!important;color:#d7e6e0!important;font-size:24px!important}
+@keyframes krsFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-8px) scale(1.015)}}
+@keyframes krsAppear{from{opacity:0}to{opacity:1}}
+@media(max-height:650px){.krs-visual{max-height:190px}.krs-timer{font-size:66px;margin-bottom:12px}.krs-content{padding-top:12px;padding-bottom:12px}}
+@media(max-width:420px){.koksik-v22-finale{padding-left:39%}.krs-content{padding-left:17px;padding-right:17px}}
+@media(prefers-reduced-motion:reduce){.krs-visual img,.koksik-rest-screen,.koksik-record-toast{animation:none!important}}
+</style>`);
