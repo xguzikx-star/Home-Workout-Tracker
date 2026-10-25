@@ -810,16 +810,23 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 
 
 // v24 — Koksik: transparent character sprites, independent approved Polish text, non-blocking notifications.
-const KOKSIK_TEXTS_V24 = {
- workout_start:["Wstałaś z kanapy. Najtrudniejsze za nami.","Jesteś tu. To już więcej, niż się spodziewałem.","Ładnie wyglądasz na tej kanapie. Wstań.","O, jednak. Byłem gotowy na rozczarowanie.","Nie wierzyłem, że przyjdziesz. Dalej nie wierzę, ale zaczynaj.","Dziś trenujesz ty. Ja jutro. Mówię tak od roku.","Zaczynaj. Ja będę udawał, że pomagam."],
- rest:["Leżysz bardzo profesjonalnie. Wstań.","Siedzisz jak ktoś, kto już skończył. Nie skończyłaś.","Odpoczywasz tak ładnie, że aż szkoda przerywać. Przerywam.","Ja bym już nie wstał. Dlatego wstaniesz ty.","Wyglądasz na zmęczoną. Ja też. Tylko ty masz powód.","Jeszcze leżysz? Ambitnie. Wstań."],
- last_set:["Ostatnia seria. Tym razem naprawdę. Chyba.","Dasz radę. Ja bym nie dał, ale ty tak.","Ja bym się poddał trzy serie temu. Dlatego jestem maskotką.","Dasz radę. Mówię tak każdemu, ale tobie nawet trochę wierzę.","Wytrzymaj. Ja bym nie wytrzymał, ale ja mam futro.","Nie patrz na mnie. Ja tu tylko ładnie wyglądam."],
- personal_record:["Rekord. Tylko nie mów nikomu, że ja nic nie zrobiłem.","Nowy rekord. Powiem wszystkim, że to moja zasługa.","Rekord. Nie wiem, kto cię tego nauczył. Na pewno nie ja.","Rekord. Dobra, odszczekuję wszystko, co o tobie myślałem.","Rekord. Teraz będę musiał więcej od ciebie oczekiwać. Nie chcę.","Zrobiliśmy to. Ty zrobiłaś, ale ja byłem obok."],
- workout_complete:["Koniec. Ja też jestem zmęczony, a nic nie robiłem.","Koniec. Byłem przy tobie cały czas. Leżąc, ale byłem.","Zrobione. Nie sądziłem, że dotrwasz. Ładnie mnie zaskoczyłaś.","Gotowe. Ja się nie spociłem ani razu. Ty za to za nas dwoje.","Skończyłaś. Ja też. Nie wiem z czym, ale skończyłem.","Możesz wracać na kanapę. Wyglądasz tam ładnie."]
-};
+const KOKSIK_TEXTS_V24 = {"workout_start":["Wstałaś z kanapy. Najtrudniejsze za nami.","Jesteś tu. To już więcej, niż się spodziewałem.","Ładnie wyglądasz na tej kanapie.","O, jednak. Byłem gotowy na rozczarowanie.","Nie wierzyłem, że przyjdziesz. Dalej nie wierzę.","Dziś trenujesz ty. Ja jutro. Mówię tak od roku.","Zaczynaj. Ja będę udawał, że pomagam."],"rest":["Leżysz bardzo profesjonalnie.","Siedzisz jak ktoś, kto już skończył. A to dopiero początek.","Odpoczywasz tak ładnie, że aż szkoda kończyć tę chwilę.","Ja bym już nie wstał. Dlatego trenujesz ty.","Wyglądasz na zmęczoną. Ja też. Tylko ty masz powód.","Jeszcze leżysz? Ambitnie.","Przerwa to mój ulubiony element treningu.","Gdybym mógł, odpoczywałbym za nas oboje.","Widzę profesjonalną regenerację. Prawie sport wyczynowy.","To była cała seria? Wyglądała na wymagającą. Z kanapy.","Moje mięśnie też potrzebują odpoczynku. Oba.","Nie przemęczaj kanapy. Ma swoje granice.","Ja liczę sekundy. Ty możesz udawać, że oddychasz spokojnie.","Przyznaję, siedzenie masz opanowane do perfekcji.","Od samego patrzenia poczułem zakwasy.","Tempo odpoczynku imponujące. Zero zbędnych ruchów.","Gdyby lenistwo było dyscypliną, miałbym medal.","To jest ta część treningu, w której czuję się kompetentny.","Nawet ja mam więcej energii. A przecież leżę.","Jeszcze chwila i zaczniesz negocjować kolejną przerwę.","Nie patrz tak na zegar. On też nie przyspieszy.","Mam wrażenie, że ta minuta jest krótsza niż moje drzemki.","Zawsze możesz powiedzieć, że odpoczywasz strategicznie.","Przez moment myślałem, że zakończyłaś trening.","Tak wygodnie tu jest, że prawie zapomniałem o ćwiczeniach.","Odpoczynek: moja specjalizacja. W końcu ktoś to docenia.","To dopiero przerwa, ale już jestem z ciebie zmęczony.","Po takiej serii zasłużyłaś na oddech. Ja profilaktycznie też.","Nie wiem, jak ty, ale ja już planuję drugą drzemkę.","Jeszcze tyle wysiłku przed tobą, a ja już jestem wykończony.","Podziwiam twój spokój. Szczególnie w bezruchu.","Oby następna seria była łatwiejsza. Dla mnie na pewno.","Jeżeli to aktywna regeneracja, ja jestem olimpijczykiem.","Nie jestem leniwy. Oszczędzam energię na doping.","Wiesz, co jest najlepsze w przerwie? Że nie trzeba liczyć powtórzeń.","Cisza, spokój i zero hantli. Prawie idealnie."],"last_set":["Ostatnia seria. Tym razem naprawdę. Chyba.","Dasz radę. Ja bym nie dał, ale ty tak.","Ja bym się poddał trzy serie temu. Dlatego jestem maskotką.","Dasz radę. Mówię tak każdemu, ale tobie nawet trochę wierzę.","Wytrzymaj. Ja bym nie wytrzymał, ale ja mam futro.","Nie patrz na mnie. Ja tu tylko ładnie wyglądam."],"personal_record":["Rekord. Tylko nie mów nikomu, że ja nic nie zrobiłem.","Nowy rekord. Powiem wszystkim, że to moja zasługa.","Rekord. Nie wiem, kto cię tego nauczył. Na pewno nie ja.","Rekord. Dobra, odszczekuję wszystko, co o tobie myślałem.","Rekord. Teraz będę musiał więcej od ciebie oczekiwać. Nie chcę.","Zrobiliśmy to. Ty zrobiłaś, ale ja byłem obok."],"workout_complete":["Koniec. Ja też jestem zmęczony, a nic nie robiłem.","Koniec. Byłem przy tobie cały czas. Leżąc, ale byłem.","Zrobione. Nie sądziłem, że dotrwasz. Ładnie mnie zaskoczyłaś.","Gotowe. Ja się nie spociłem ani razu. Ty za to za nas dwoje.","Skończyłaś. Ja też. Nie wiem z czym, ale skończyłem.","Możesz wracać na kanapę. Wyglądasz tam ładnie."]};
 const KOKSIK_POSES_V24={workout_start:[0,6,8,10,11,13,14,16],rest:[1,2,5,7,9,12,15,17,18,20,23,26],last_set:[0,3,8,9,14,19,22],personal_record:[3,4,10,16,19,25],workout_complete:[1,2,3,4,7,12,20,23]};
-const KOKSIK_LAST_V24={};
-function koksikPickV24(type){const arr=KOKSIK_TEXTS_V24[type]||KOKSIK_TEXTS_V24.rest;let i=Math.floor(Math.random()*arr.length);if(i===KOKSIK_LAST_V24[type]&&arr.length>1)i=(i+1)%arr.length;KOKSIK_LAST_V24[type]=i;return arr[i]}
+// Losowanie bez powtórzeń: cała pula przed następnym cyklem; kolejność nie jest przewidywalna.
+const KOKSIK_BAGS_V26={};
+function koksikPickV24(type){
+ const pool=KOKSIK_TEXTS_V24[type]||KOKSIK_TEXTS_V24.rest;
+ let bag=KOKSIK_BAGS_V26[type];
+ if(!bag||!bag.length){
+  bag=pool.map((_,i)=>i);
+  for(let i=bag.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[bag[i],bag[j]]=[bag[j],bag[i]]}
+  if(bag.length>1&&KOKSIK_BAGS_V26[type+'Last']===bag[bag.length-1]){
+   [bag[0],bag[bag.length-1]]=[bag[bag.length-1],bag[0]];
+  }
+  KOKSIK_BAGS_V26[type]=bag;
+ }
+ const index=bag.pop();KOKSIK_BAGS_V26[type+'Last']=index;return pool[index];
+}
 function koksikSpriteV24(type){const arr=KOKSIK_POSES_V24[type]||KOKSIK_POSES_V24.rest;return './koksik-pose-'+String(arr[Math.floor(Math.random()*arr.length)]).padStart(2,'0')+'.png'}
 let koksikNoticeTimerV24=0;
 function koksikNoticeV24(type,{persistent=false}={}){
@@ -832,7 +839,7 @@ function koksikNoticeV24(type,{persistent=false}={}){
 }
 // Do not occupy permanent workout space with a static Koksik card.
 const koksikMountBaseV24=koksikMount;
-koksikMount=function(mode){if(mode==='workout'||mode==='home'){document.querySelector('#app .koksik-v22')?.remove();return}koksikMountBaseV24(mode)};
+koksikMount=function(mode){if(mode==='workout'){document.querySelector('#app .koksik-v22')?.remove();return}if(mode==='home'){koksikMountHomeV26();return}koksikMountBaseV24(mode)};
 const koksikStartWorkoutBaseV24=startWorkout;
 startWorkout=function(...args){const was=!!active;koksikStartWorkoutBaseV24(...args);if(!was&&active)setTimeout(()=>koksikNoticeV24('workout_start'),150)};
 const koksikStartRestBaseV24=startRest;
@@ -854,4 +861,29 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 .krs-visual{background:none!important}.krs-visual img{width:100%;height:100%;object-fit:contain!important;mask-image:none!important;-webkit-mask-image:none!important;animation:koksikFloatV24 2.6s ease-in-out infinite alternate}
 @keyframes koksikFloatV24{from{transform:translateY(0) rotate(-1deg)}to{transform:translateY(-8px) rotate(1deg)}}
 @media(prefers-reduced-motion:reduce){.krs-visual img,.koksik-popup-v24{animation:none!important}}
+</style>`);
+
+// v26 — spójna, kompaktowa prezentacja Koksika na ekranie głównym.
+function koksikMountHomeV26(){
+ const root=document.querySelector('#app section');if(!root)return;
+ root.querySelector('.koksik-v22')?.remove();root.querySelector('.koksik-home-v26')?.remove();
+ const anchor=root.querySelector('.home-primary')||root.querySelector('.hero-card');if(!anchor)return;
+ const card=document.createElement('aside');card.className='koksik-home-v26';
+ const img=document.createElement('img');img.src='./koksik-pose-02.png';img.alt='Koksik, panda ruda';
+ const wrap=document.createElement('div');wrap.className='koksik-home-v26-body';
+ const eyebrow=document.createElement('span');eyebrow.textContent='KOKSIK · TWÓJ TRENER';
+ const heading=document.createElement('strong');heading.textContent='Koksik ma plan';
+ const p=document.createElement('p');p.textContent='Ja bym dzisiaj odpoczywał. Ale ty masz ambitniejsze plany.';
+ wrap.append(eyebrow,heading,p);
+ const mute=document.createElement('button');mute.type='button';mute.textContent=koksikMuted?'Włącz':'Wycisz';mute.onclick=()=>{koksikMuted=!koksikMuted;localStorage.setItem('hwt-koksik-muted',koksikMuted?'1':'0');mute.textContent=koksikMuted?'Włącz':'Wycisz';p.textContent=koksikMuted?'Koksik milczy. Chwilowo.':'Ja bym dzisiaj odpoczywał. Ale ty masz ambitniejsze plany.'};
+ if(koksikMuted)p.textContent='Koksik milczy. Chwilowo.';
+ card.append(img,wrap,mute);anchor.insertAdjacentElement('beforebegin',card);
+}
+document.head.insertAdjacentHTML('beforeend',`<style>
+.koksik-home-v26{display:flex;align-items:center;gap:14px;background:#12242b;border:1px solid #315047;border-radius:22px;padding:12px 14px 12px 7px;margin:18px 0 24px;min-height:125px;color:#f4f8f9}
+.koksik-home-v26>img{width:104px;height:112px;object-fit:contain;flex-shrink:0;filter:drop-shadow(0 5px 9px #0005)}
+.koksik-home-v26-body{min-width:0;flex:1}.koksik-home-v26-body span{display:block;font:700 10px/1.4 system-ui,sans-serif;letter-spacing:.14em;color:#a2bcad}
+.koksik-home-v26-body strong{display:block;font-size:18px;line-height:1.3;margin:4px 0}.koksik-home-v26-body p{font-size:13px;line-height:1.5;color:#c3d1d3;margin:0}
+.koksik-home-v26>button{align-self:flex-start;border:0;background:transparent;color:#b0f580;font-size:12px;padding:4px;cursor:pointer}
+@media(max-width:390px){.koksik-home-v26{gap:8px;padding-right:9px}.koksik-home-v26>img{width:82px;height:100px}.koksik-home-v26-body strong{font-size:16px}}
 </style>`);
