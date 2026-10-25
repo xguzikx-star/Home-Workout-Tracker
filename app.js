@@ -181,7 +181,7 @@ function startWorkout(p){active=structuredClone(p);active.ex.forEach(e=>{e.type=
 function recoveryBanner(){return draft?`<div class="recovery"><div><b>Niedokończony trening</b><small>Zapisano ${new Date(draft.savedAt).toLocaleString('pl')}</small></div><button id="recover">Kontynuuj</button><button id="discard-draft">Odrzuć</button></div>`:''}
 function home(){const start=monday(),week=allActivities().filter(a=>new Date(a.date)>=start).length,vol=logs.filter(l=>new Date(l.date)>=start).reduce((a,l)=>a+volume(l),0),last=logs[0],streak=getStreak();page('Cześć!','TWÓJ DASHBOARD',`${recoveryBanner()}<div class="home-primary"><button id="quick">＋ Rozpocznij pusty trening</button><span>albo wybierz zapisany plan poniżej</span></div><div class="hero-card"><div><small>AKTYWNOŚĆ · 12 TYGODNI</small><h2>${allActivities().length?`${allActivities().length} zapisanych aktywności`:'Zacznij budować regularność'}</h2></div><span class="streak">${streak} <small>dni serii</small></span>${heatmap()}</div><div class="kpis"><article><small>TEN TYDZIEŃ</small><strong>${week}<em>/ 3</em></strong><span>aktywności od poniedziałku</span></article><article><small>OBJĘTOŚĆ</small><strong>${Math.round(vol)}<em> kg</em></strong><span>w tym tygodniu</span></article><article><small>OSTATNI TRENING</small><strong class="text">${last?esc(last.name):'—'}</strong><span>${last?new Date(last.date).toLocaleDateString('pl'):'brak danych'}</span></article></div><div class="section-title"><div><small>NA DZIŚ</small><h2>Wybierz trening</h2></div></div><div class="programs">${plans.slice(0,4).map((p,i)=>`<article class="program c${i}"><span>0${i+1}</span><div><h3>${esc(p.name)}</h3><p>${esc(p.focus)} · ${p.ex.length} ćwiczeń</p></div><button class="begin" data-id="${p.id}">Start</button></article>`).join('')}</div><div class="weight-card"><div><small>MASA CIAŁA</small><h2>${weights[0]?weights[0].value+' kg':'Dodaj pierwszy pomiar'}</h2><p>${weights.length>1?delta(weights[0].value-weights[1].value)+' kg od poprzedniego pomiaru':'Śledź zmianę w czasie'}</p></div><button id="add-weight">＋ Pomiar</button></div><section class="settings-card"><div><small>DANE I USTAWIENIA</small><h2>Kopia zapasowa</h2><p>Eksportuj dane przed zmianą telefonu lub adresu strony.</p></div><div><button id="export-json">Eksport JSON</button><button id="export-csv">Eksport CSV</button><label class="import-label">Import JSON<input id="import-json" type="file" accept="application/json"></label><button id="gear-settings">Mój sprzęt</button></div></section>`)}
 const oldBind=bind;bind=function(){oldBind();document.querySelector('#recover')?.addEventListener('click',()=>{active=draft.active;started=draft.started||Date.now();view='workout';timerId=setInterval(()=>{const el=document.querySelector('#timer');if(el)el.textContent=time(Date.now()-started)},1000);render()});document.querySelector('#discard-draft')?.addEventListener('click',()=>{clearDraft();render()});document.querySelector('#export-json')?.addEventListener('click',exportJSON);document.querySelector('#export-csv')?.addEventListener('click',exportCSV);document.querySelector('#import-json')?.addEventListener('change',importJSON);document.querySelector('#gear-settings')?.addEventListener('click',gearSettings)};
-function picker(){const groups=['Wszystkie',...new Set(LIB.map(e=>e.group))],gears=['Wszystkie',...new Set(LIB.map(e=>e.gear))];let list=LIB.filter(e=>(filters.group==='Wszystkie'||e.group===filters.group)&&(filters.gear==='Wszystkie'||e.gear===filters.gear)&&e.name.toLowerCase().includes(filters.q.toLowerCase()));if(pickerMode==='favorites')list=list.filter(e=>favorites.includes(e.name));if(pickerMode==='recent')list=list.sort((a,b)=>recentExercises.indexOf(a.name)-recentExercises.indexOf(b.name)).filter(e=>recentExercises.includes(e.name));if(pickerMode==='owned')list=list.filter(e=>ownedGear.includes(e.gear));return `<div class="overlay picker-layer"><div class="modal picker"><div class="modal-head"><div><small>BIBLIOTEKA</small><h2>Wybierz ćwiczenie</h2></div><button id="close-picker">×</button></div><div class="picker-tabs"><button data-mode="all" class="${pickerMode==='all'?'on':''}">Wszystkie</button><button data-mode="owned" class="${pickerMode==='owned'?'on':''}">Mój sprzęt</button><button data-mode="favorites" class="${pickerMode==='favorites'?'on':''}">★ Ulubione</button><button data-mode="recent" class="${pickerMode==='recent'?'on':''}">Ostatnie</button></div><div class="search"><input id="search-ex" placeholder="Szukaj ćwiczenia…" value="${esc(filters.q)}"><button id="custom-ex">＋ Własne</button></div><div class="chips">${groups.map(g=>`<button class="group-chip ${filters.group===g?'on':''}" data-v="${g}">${g}</button>`).join('')}</div><select id="gear-filter">${gears.map(g=>`<option ${filters.gear===g?'selected':''}>${g}</option>`).join('')}</select><div class="library-list">${list.map(e=>`<div class="library-item"><button class="favorite-ex ${favorites.includes(e.name)?'on':''}" data-name="${esc(e.name)}" aria-label="Dodaj do ulubionych">★</button><button class="choose-ex" data-id="${e.id}"><i>${muscleIcon(e.group)}</i><span><b>${esc(e.name)}</b><small>${e.group} · ${e.gear} · ${typeLabel(e.type)}</small></span><em>＋</em></button>${guideHTML(e.name,e.group,true)}</div>`).join('')||'<p class="empty-line">Brak wyników. Dodaj własne ćwiczenie.</p>'}</div></div></div>`}
+function picker(){const groups=['Wszystkie',...new Set(LIB.map(e=>e.group))],gears=['Wszystkie',...new Set(LIB.map(e=>e.gear))];let list=LIB.filter(e=>(filters.group==='Wszystkie'||e.group===filters.group)&&(filters.gear==='Wszystkie'||e.gear===filters.gear)&&exerciseMatchesSearch(e,filters.q));if(pickerMode==='favorites')list=list.filter(e=>favorites.includes(e.name));if(pickerMode==='recent')list=list.sort((a,b)=>recentExercises.indexOf(a.name)-recentExercises.indexOf(b.name)).filter(e=>recentExercises.includes(e.name));if(pickerMode==='owned')list=list.filter(e=>ownedGear.includes(e.gear));return `<div class="overlay picker-layer"><div class="modal picker"><div class="modal-head"><div><small>BIBLIOTEKA</small><h2>Wybierz ćwiczenie</h2></div><button id="close-picker">×</button></div><div class="picker-tabs"><button data-mode="all" class="${pickerMode==='all'?'on':''}">Wszystkie</button><button data-mode="owned" class="${pickerMode==='owned'?'on':''}">Mój sprzęt</button><button data-mode="favorites" class="${pickerMode==='favorites'?'on':''}">★ Ulubione</button><button data-mode="recent" class="${pickerMode==='recent'?'on':''}">Ostatnie</button></div><div class="search"><input id="search-ex" placeholder="Szukaj ćwiczenia…" value="${esc(filters.q)}"><button id="custom-ex">＋ Własne</button></div><div class="chips">${groups.map(g=>`<button class="group-chip ${filters.group===g?'on':''}" data-v="${g}">${g}</button>`).join('')}</div><select id="gear-filter">${gears.map(g=>`<option ${filters.gear===g?'selected':''}>${g}</option>`).join('')}</select><div class="library-list">${list.map(e=>`<div class="library-item"><button class="favorite-ex ${favorites.includes(e.name)?'on':''}" data-name="${esc(e.name)}" aria-label="Dodaj do ulubionych">★</button><button class="choose-ex" data-id="${e.id}"><i>${muscleIcon(e.group)}</i><span><b>${esc(e.name)}</b><small>${esc(exerciseCategoryLabel(e.group))} · ${esc(e.gear)} · ${typeLabel(e.type)}</small></span><em>＋</em></button>${guideHTML(e.name,e.group,true)}</div>`).join('')||'<p class="empty-line">Brak wyników. Dodaj własne ćwiczenie.</p>'}</div></div></div>`}
 function bindPicker(){document.querySelector('#close-picker')?.addEventListener('click',()=>{pickerFor=null;if(active&&view==='workout'){syncActiveInputs();persistDraft();workout()}else render()});document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{pickerMode=b.dataset.mode;render()});document.querySelector('#search-ex')?.addEventListener('input',e=>{const q=e.target.value;clearTimeout(window.exerciseSearchTimer);window.exerciseSearchTimer=setTimeout(()=>{filters.q=q;render();document.querySelector('#search-ex')?.focus()},250)});document.querySelectorAll('.group-chip').forEach(b=>b.onclick=()=>{filters.group=b.dataset.v;render()});document.querySelector('#gear-filter')?.addEventListener('change',e=>{filters.gear=e.target.value;render()});document.querySelectorAll('.favorite-ex').forEach(b=>b.onclick=()=>{favorites=favorites.includes(b.dataset.name)?favorites.filter(x=>x!==b.dataset.name):[...favorites,b.dataset.name];save();render()});document.querySelectorAll('.choose-ex').forEach(b=>b.onclick=()=>addPicked(LIB.find(e=>e.id===b.dataset.id)));document.querySelector('#custom-ex')?.addEventListener('click',()=>customExercise())}
 function customExercise(){const name=prompt('Nazwa własnego ćwiczenia:');if(!name)return;const type=prompt('Typ pomiaru: powtórzenia, czas lub kroki','powtórzenia');addPicked({name,group:'Własne',gear:'Inne',type:type?.toLowerCase().startsWith('czas')?'time':type?.toLowerCase().startsWith('krok')?'steps':'reps'})}
 function addPicked(e){const target=makeEx(e.name,e.group,e.gear,3,10,0);target.type=e.type||inferType(e.name,e.group);target.rest=60;target.note='';target.unilateral=false;recentExercises=[e.name,...recentExercises.filter(x=>x!==e.name)].slice(0,15);save();if(pickerFor==='plan')editing.ex.push(target);else active.ex.push(target);pickerFor=null;persistDraft();render()}
@@ -460,6 +460,67 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 .workout-swap-list{overflow:auto;min-height:90px;display:flex;flex-direction:column;gap:6px}
 .workout-swap-list button{text-align:left;padding:12px;border:1px solid #a5aca9;border-radius:10px;background:transparent;color:inherit}
 #rest-float .rest-add-time{margin-left:6px}
+</style>`);
+
+
+// v17: Polish search aliases only. Historical exercise names and IDs stay unchanged.
+const EXERCISE_SEARCH_ALIASES={
+ 'Goblet squat':['przysiad kielichowy','przysiad z hantlem z przodu'],
+ 'Hip thrust':['wypychanie bioder','unoszenie bioder z podparciem'],
+ 'Glute bridge':['most biodrowy','unoszenie bioder w leżeniu'],
+ 'Romanian deadlift':['martwy ciąg rumuński','rdl'],
+ 'Rumuński martwy ciąg':['rdl','romanian deadlift'],
+ 'Face pull':['przyciąganie do twarzy'],
+ 'Pallof press':['antyrotacja','wyciskanie antyrotacyjne'],
+ 'Dead bug':['martwy robak','naprzemienne opuszczanie kończyn'],
+ 'Bird dog':['pies ptak','unoszenie przeciwległych kończyn'],
+ 'Side plank':['deska bokiem','plank boczny'],
+ 'Plank':['deska','podpór przodem'],
+ 'Monster walk':['chodzenie z gumą','kroki bokiem z gumą'],
+ 'Donkey kick':['wyprost nogi w klęku','kopnięcie w tył'],
+ 'Good morning':['skłon dzień dobry'],
+ 'Bulgarian split squat':['przysiad bułgarski'],
+ 'Wiosłowanie jednorącz':['one arm row','wiosłowanie hantlem'],
+ 'Pompki':['push up','push ups'],
+ 'Wyciskanie nad głowę':['overhead press','shoulder press']
+};
+function exerciseCategoryLabel(group){return ({Core:'Brzuch i stabilizacja',Kondycja:'Kondycja',Mobilność:'Mobilność',Ramiona:'Ramiona',Pośladki:'Pośladki'})[group]||group||'Inne'}
+function exerciseMatchesSearch(ex,q){const normalize=v=>String(v||'').toLocaleLowerCase('pl').normalize('NFD').replace(/[\u0300-\u036f]/g,'');const term=normalize(q).trim();if(!term)return true;return [ex.name,ex.group,ex.gear,...(EXERCISE_SEARCH_ALIASES[ex.name]||[])].some(v=>normalize(v).includes(term))}
+// Concise, exercise-specific additions; preserve existing instructions when available.
+Object.assign(EXERCISE_GUIDES,{
+ 'Goblet squat':['Przytrzymaj hantel blisko mostka; ustaw stopy stabilnie.','Zejdź w przysiad z kolanami prowadzonymi w kierunku palców stóp.','Wstań, dociskając całe stopy do podłoża; nie zaokrąglaj pleców.'],
+ 'Hip thrust':['Oprzyj górną część pleców o stabilne podwyższenie i ustaw stopy na szerokość bioder.','Unieś biodra poprzez wyprost w stawach biodrowych; utrzymuj napięty brzuch.','Zatrzymaj na chwilę w górze, nie przeprostowując odcinka lędźwiowego.'],
+ 'Rumuński martwy ciąg':['Ustaw stopy na szerokość bioder, ciężar trzymaj blisko nóg.','Cofaj biodra z lekko ugiętymi kolanami i neutralnym kręgosłupem.','Wróć do wyprostu bioder, bez odchylania tułowia do tyłu.'],
+ 'Pallof press':['Stań bokiem do zaczepionej gumy, utrzymując stabilny tułów.','Wypchnij dłonie przed mostek i nie pozwól tułowiowi skręcić się w stronę oporu.','Wróć powoli i powtórz po drugiej stronie.'],
+ 'Dead bug':['Połóż się na plecach, unieś ręce i nogi z kolanami ugiętymi.','Powoli opuszczaj przeciwległą rękę i nogę bez odrywania lędźwi od podłoża.','Wróć do środka i zmień stronę.'],
+ 'Przysiad bułgarski':['Oprzyj tylną stopę na stabilnym podwyższeniu, przednią ustaw na tyle daleko, by zachować równowagę.','Zejdź pionowo, kontrolując kolano nogi z przodu.','Wstań, odpychając się przednią stopą; nie odbijaj od podłoża.']
+});
+// v17 visual rhythm: compact hierarchy, touch targets, fewer competing outlines.
+document.head.insertAdjacentHTML('beforeend',`<style>
+.active-card{overflow:hidden}
+.active-card .active-title{padding:17px 17px 15px;gap:10px;align-items:start}
+.active-card .active-title>div{gap:6px;min-width:0}
+.active-card .active-title .exercise-history h2{font-size:clamp(18px,4.6vw,22px);font-weight:800;letter-spacing:-.025em;line-height:1.2}
+.active-card .active-title>div>small{color:#aab7c0;font-size:12px;line-height:1.35}
+.active-card .active-title .exercise-config{color:#b5df99!important;font-size:11px;line-height:1.45}
+.active-card .workout-rest-row{margin-top:8px}
+.active-card .workout-rest-setting{font-size:12px;min-height:38px;padding:8px 12px}
+.active-card .active-title>.remove-active{border-radius:10px;font-size:18px;line-height:1;min-width:38px;min-height:38px}
+.active-card .set-head{font-size:10px;letter-spacing:.045em;color:#9aa9b4}
+.active-card .set-row.compact{gap:8px;padding:9px 12px}
+.active-card .set-row input{min-width:0;width:100%;font-variant-numeric:tabular-nums;text-align:center;min-height:48px;border-radius:11px}
+.active-card .set-row.done{background:rgba(166,241,109,.055)}
+.active-card .set-row.done>b{color:var(--green)}
+.active-card .toggle-set{min-width:42px;min-height:44px;touch-action:manipulation}
+.active-card .exercise-tools{gap:0}
+.active-card .exercise-tools button{min-height:47px;font-size:11px;letter-spacing:0;padding:10px 6px}
+.active-card .tech-guide{margin-left:14px;margin-right:14px}
+.library-list .library-item{border-bottom:1px solid rgba(160,190,200,.10);padding:6px 0}
+.library-list .choose-ex{min-width:0}
+.library-list .choose-ex b{font-size:13px;line-height:1.35}
+.library-list .choose-ex small{font-size:11px;line-height:1.4;color:#a4b4b8}
+.library-list .favorite-ex{min-width:36px;min-height:42px}
+@media(max-width:420px){.active-card .active-title{padding:14px 12px 12px}.active-card .set-row.compact{gap:6px;padding:8px 9px}.active-card .set-row input{min-height:46px;padding:8px 5px}.active-card .exercise-tools button{font-size:10px;padding:8px 3px}}
 </style>`);
 
 if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
