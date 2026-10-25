@@ -698,7 +698,6 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 @media(max-width:480px){.koksik-v22{gap:8px}.koksik-v22-content{padding-right:35px}.koksik-v22-content p{font-size:13px!important}.koksik-v22-small{grid-template-columns:67px 1fr}.koksik-v22-small .koksik-v22-content p{font-size:12px!important}}
 @media(prefers-reduced-motion:no-preference){.koksik-v22[data-scene="record"] .koksik-v22-art img{animation:koksik-v22-pop .42s ease-out}@keyframes koksik-v22-pop{0%{transform:scale(.90)}75%{transform:scale(1.05)}100%{transform:scale(1)}}}
 </style>`);
-render();
 
 
 // v23 — sceniczna prezentacja Koksika i pełnoekranowa przerwa.
@@ -843,9 +842,9 @@ koksikMount=function(mode){if(mode==='workout'){document.querySelector('#app .ko
 const koksikStartWorkoutBaseV24=startWorkout;
 startWorkout=function(...args){const was=!!active;koksikStartWorkoutBaseV24(...args);if(!was&&active)setTimeout(()=>koksikNoticeV24('workout_start'),150)};
 const koksikStartRestBaseV24=startRest;
-startRest=function(...args){koksikStartRestBaseV24(...args);const layer=document.querySelector('#koksik-rest-screen');if(layer){const art=layer.querySelector('.krs-visual img');if(art){art.src=koksikSpriteV24('rest');art.style.cssText='object-fit:contain;width:100%;height:100%;max-height:34vh';}const message=layer.querySelector('.krs-message');if(message)message.textContent=koksikPickV24('rest')}};
+startRest=function(...args){koksikStartRestBaseV24(...args);const layer=document.querySelector('#koksik-rest-screen');if(layer){const art=layer.querySelector('.krs-visual img');if(art){art.src=koksikSpriteV24('rest');art.style.cssText='object-fit:contain;width:100%;height:100%;max-height:34vh';}const message=layer.querySelector('.krs-message');if(message)message.textContent=koksikMuted?'':koksikPickV24('rest')}};
 const koksikShowRestBaseV24=koksikShowRest;
-koksikShowRest=function(){const existing=!!document.querySelector('#koksik-rest-screen');koksikShowRestBaseV24();if(!existing){const img=document.querySelector('#koksik-rest-screen .krs-visual img'),msg=document.querySelector('#koksik-rest-screen .krs-message');if(img)img.src=koksikSpriteV24('rest');if(msg)msg.textContent=koksikPickV24('rest')}};
+koksikShowRest=function(){const existing=!!document.querySelector('#koksik-rest-screen');koksikShowRestBaseV24();if(!existing){const img=document.querySelector('#koksik-rest-screen .krs-visual img'),msg=document.querySelector('#koksik-rest-screen .krs-message');if(img)img.src=koksikSpriteV24('rest');if(msg)msg.textContent=koksikMuted?'':koksikPickV24('rest')}};
 // Replace v23 baked-image record toast with text and a transparent illustration.
 const koksikCheckRecordBaseV24=checkRecord;
 checkRecord=function(...args){const before=koksikRecordAt;koksikCheckRecordBaseV24(...args);if(koksikRecordAt>before){document.querySelector('#koksik-record-toast')?.remove();clearTimeout(koksikRecordToastTimer);koksikNoticeV24('personal_record')}};
@@ -885,9 +884,10 @@ function koksikMountHomeV28(){
  const anchor=root.querySelector('.home-primary')||root.querySelector('.hero-card');if(!anchor)return;
  const v=koksikHomeVariantV28();const card=document.createElement('aside');card.className='koksik-home-v28 koksik-home-v28-'+v.kind;
  const pose='./koksik-pose-'+String(v.pose).padStart(2,'0')+'.png';
- card.innerHTML=`<div class="kh28-copy"><span class="kh28-eyebrow">${v.eyebrow}</span><h2>${v.title}</h2><p>${koksikMuted?'Koksik odpoczywa od komentowania.':esc(v.text)}</p><button type="button" class="kh28-action">${v.button}</button></div><img class="kh28-figure" src="${pose}" alt="Koksik — panda ruda" loading="eager">`;
+ card.innerHTML=`<div class="kh28-copy"><span class="kh28-eyebrow">${v.eyebrow}</span><h2>${v.title}</h2><p>${koksikMuted?'Koksik odpoczywa od komentowania.':esc(v.text)}</p><div class="kh28-controls"><button type="button" class="kh28-action">Wybierz trening</button><button type="button" class="kh28-mute" aria-pressed="${koksikMuted}">${koksikMuted?'Włącz':'Wycisz'}</button></div></div><img class="kh28-figure" src="${pose}" alt="Koksik — panda ruda" loading="eager">`;
  anchor.insertAdjacentElement('beforebegin',card);
  card.querySelector('.kh28-action')?.addEventListener('click',()=>{const plans=root.querySelector('.programs')||root.querySelector('.home-primary');if(plans){plans.scrollIntoView({behavior:'smooth',block:'start'});const start=plans.querySelector('button');if(start)start.focus({preventScroll:true})}});
+ card.querySelector('.kh28-mute')?.addEventListener('click',()=>{koksikMuted=!koksikMuted;localStorage.setItem('hwt-koksik-muted',koksikMuted?'1':'0');koksikMountHomeV28()});
 }
 document.head.insertAdjacentHTML('beforeend',`<style>
 .koksik-home-v28{position:relative;isolation:isolate;display:flex;align-items:center;min-height:220px;overflow:hidden;border:1px solid #344b4f;border-radius:25px;background:radial-gradient(ellipse at 94% 100%,#27413a88,transparent 60%),linear-gradient(145deg,#162733,#0d1924);margin:18px 0 24px;padding:25px 18px;color:#f6f8fa}
@@ -904,3 +904,17 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 @media(max-width:390px){.koksik-home-v28{min-height:205px;padding:18px 15px}.koksik-home-v28 .kh28-copy{width:73%}.koksik-home-v28 .kh28-figure{width:47%;right:-19px}.koksik-home-v28 p{font-size:13px}}
 @media(prefers-reduced-motion:reduce){.koksik-home-v28 .kh28-figure{transform:none}}
 </style>`);
+
+// v29 – accessible controls and stable positioning of the daily Koksik card.
+document.head.insertAdjacentHTML('beforeend',`<style>
+.koksik-home-v28 .kh28-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.koksik-home-v28 .kh28-mute{padding:7px 2px;border:0;background:none;color:#b5c8c9;font:600 12px/1.3 system-ui,sans-serif;cursor:pointer}
+.koksik-home-v28 .kh28-mute:focus-visible,.koksik-home-v28 .kh28-action:focus-visible{outline:2px solid #a8ef78;outline-offset:3px}
+.koksik-home-v28 .kh28-copy{min-width:0}
+.koksik-home-v28 .kh28-figure{object-fit:contain}
+@media(max-width:420px){.koksik-home-v28 .kh28-controls{gap:4px}.koksik-home-v28 .kh28-action{padding-inline:12px;font-size:13px;min-height:44px}.koksik-home-v28 .kh28-mute{font-size:11px}}
+</style>`);
+
+
+// v30: ekran startowy renderowany dopiero po podłączeniu finalnej karty Koksika.
+render();
