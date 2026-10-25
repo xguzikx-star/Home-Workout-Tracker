@@ -839,7 +839,7 @@ function koksikNoticeV24(type,{persistent=false}={}){
 }
 // Do not occupy permanent workout space with a static Koksik card.
 const koksikMountBaseV24=koksikMount;
-koksikMount=function(mode){if(mode==='workout'){document.querySelector('#app .koksik-v22')?.remove();return}if(mode==='home'){koksikMountHomeV26();return}koksikMountBaseV24(mode)};
+koksikMount=function(mode){if(mode==='workout'){document.querySelector('#app .koksik-v22')?.remove();return}if(mode==='home'){koksikMountHomeV28();return}koksikMountBaseV24(mode)};
 const koksikStartWorkoutBaseV24=startWorkout;
 startWorkout=function(...args){const was=!!active;koksikStartWorkoutBaseV24(...args);if(!was&&active)setTimeout(()=>koksikNoticeV24('workout_start'),150)};
 const koksikStartRestBaseV24=startRest;
@@ -864,26 +864,43 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 </style>`);
 
 // v26 — spójna, kompaktowa prezentacja Koksika na ekranie głównym.
-function koksikMountHomeV26(){
+const KOKSIK_HOME_VARIANTS_V28=[
+ {kind:'welcome',eyebrow:'KOKSIK · DZIEŃ DOBRY',title:'No, proszę.',text:'Jesteś tutaj. To już więcej, niż się spodziewałem.',pose:3,button:'Pokaż treningi'},
+ {kind:'challenge',eyebrow:'MAŁE WYZWANIE',title:'Tylko jedna seria?',text:'Możesz zacząć od jednej. Oboje wiemy, że na tym nie skończysz.',pose:4,button:'Sprawdź plany'},
+ {kind:'motivation',eyebrow:'KOKSIK MA UWAGĘ',title:'Forma sama się nie zrobi.',text:'Sprawdziłem. Niestety nadal trzeba ćwiczyć.',pose:8,button:'Do treningu'},
+ {kind:'welcome',eyebrow:'DZIŚ TEŻ TU JESTEŚ',title:'Nie wierzyłem.',text:'Nadal trochę nie wierzę. Ale wygląda na to, że masz zamiar poćwiczyć.',pose:10,button:'Działamy'},
+ {kind:'challenge',eyebrow:'WYZWANIE DNIA',title:'Pokaż mi tę energię.',text:'Ja swoją oszczędzam od miesięcy. Ty wykorzystaj swoją lepiej.',pose:11,button:'Wybierz trening'},
+ {kind:'motivation',eyebrow:'KOKSIK KOMENTUJE',title:'Ambitnie.',text:'Wyglądasz na osobę, która dziś coś zrobi. Postaram się nie przeszkadzać.',pose:12,button:'Zaczynamy'},
+ {kind:'welcome',eyebrow:'DZIEŃ DOBRY OD KOKSIKA',title:'Kanapa poczeka.',text:'Będzie tęsknić, ale jakoś sobie poradzi.',pose:2,button:'Pokaż plany'},
+ {kind:'challenge',eyebrow:'MAŁY CEL',title:'Trzymaj tempo.',text:'Ty robisz powtórzenia, ja robię wrażenie. Każdy ma zadanie.',pose:5,button:'Czas na ruch'},
+ {kind:'motivation',eyebrow:'KOKSIK · BEZ WYMÓWEK',title:'Zaskocz mnie.',text:'Moje oczekiwania są niskie. To twoja przewaga.',pose:20,button:'Do dzieła'},
+ {kind:'welcome',eyebrow:'MIŁO CIĘ WIDZIEĆ',title:'O, jednak!',text:'Byłem przygotowany na kolejną drzemkę. Ale możemy też potrenować.',pose:24,button:'Wybierz plan'},
+ {kind:'challenge',eyebrow:'DZIŚ PRÓBUJEMY',title:'Jeszcze kawałek.',text:'Nie musisz robić wszystkiego naraz. Ja nawet nie próbuję.',pose:27,button:'Zobacz treningi'},
+ {kind:'motivation',eyebrow:'TWÓJ LENIWY TRENER',title:'Ty dasz radę.',text:'Ja bym nie dał. Na szczęście to nie mój trening.',pose:30,button:'Zaczynamy'}
+];
+function koksikHomeVariantV28(){const d=new Date();const day=Math.floor((new Date(d.getFullYear(),d.getMonth(),d.getDate())-new Date(2026,0,1))/86400000);return KOKSIK_HOME_VARIANTS_V28[((day%KOKSIK_HOME_VARIANTS_V28.length)+KOKSIK_HOME_VARIANTS_V28.length)%KOKSIK_HOME_VARIANTS_V28.length]}
+function koksikMountHomeV28(){
  const root=document.querySelector('#app section');if(!root)return;
- root.querySelector('.koksik-v22')?.remove();root.querySelector('.koksik-home-v26')?.remove();
+ root.querySelector('.koksik-v22')?.remove();root.querySelector('.koksik-home-v26')?.remove();root.querySelector('.koksik-home-v27')?.remove();root.querySelector('.koksik-home-v28')?.remove();
  const anchor=root.querySelector('.home-primary')||root.querySelector('.hero-card');if(!anchor)return;
- const card=document.createElement('aside');card.className='koksik-home-v26';
- const img=document.createElement('img');img.src='./koksik-pose-02.png';img.alt='Koksik, panda ruda';
- const wrap=document.createElement('div');wrap.className='koksik-home-v26-body';
- const eyebrow=document.createElement('span');eyebrow.textContent='KOKSIK · TWÓJ TRENER';
- const heading=document.createElement('strong');heading.textContent='Koksik ma plan';
- const p=document.createElement('p');p.textContent='Ja bym dzisiaj odpoczywał. Ale ty masz ambitniejsze plany.';
- wrap.append(eyebrow,heading,p);
- const mute=document.createElement('button');mute.type='button';mute.textContent=koksikMuted?'Włącz':'Wycisz';mute.onclick=()=>{koksikMuted=!koksikMuted;localStorage.setItem('hwt-koksik-muted',koksikMuted?'1':'0');mute.textContent=koksikMuted?'Włącz':'Wycisz';p.textContent=koksikMuted?'Koksik milczy. Chwilowo.':'Ja bym dzisiaj odpoczywał. Ale ty masz ambitniejsze plany.'};
- if(koksikMuted)p.textContent='Koksik milczy. Chwilowo.';
- card.append(img,wrap,mute);anchor.insertAdjacentElement('beforebegin',card);
+ const v=koksikHomeVariantV28();const card=document.createElement('aside');card.className='koksik-home-v28 koksik-home-v28-'+v.kind;
+ const pose='./koksik-pose-'+String(v.pose).padStart(2,'0')+'.png';
+ card.innerHTML=`<div class="kh28-copy"><span class="kh28-eyebrow">${v.eyebrow}</span><h2>${v.title}</h2><p>${koksikMuted?'Koksik odpoczywa od komentowania.':esc(v.text)}</p><button type="button" class="kh28-action">${v.button}</button></div><img class="kh28-figure" src="${pose}" alt="Koksik — panda ruda" loading="eager">`;
+ anchor.insertAdjacentElement('beforebegin',card);
+ card.querySelector('.kh28-action')?.addEventListener('click',()=>{const plans=root.querySelector('.programs')||root.querySelector('.home-primary');if(plans){plans.scrollIntoView({behavior:'smooth',block:'start'});const start=plans.querySelector('button');if(start)start.focus({preventScroll:true})}});
 }
 document.head.insertAdjacentHTML('beforeend',`<style>
-.koksik-home-v26{display:flex;align-items:center;gap:14px;background:#12242b;border:1px solid #315047;border-radius:22px;padding:12px 14px 12px 7px;margin:18px 0 24px;min-height:125px;color:#f4f8f9}
-.koksik-home-v26>img{width:104px;height:112px;object-fit:contain;flex-shrink:0;filter:drop-shadow(0 5px 9px #0005)}
-.koksik-home-v26-body{min-width:0;flex:1}.koksik-home-v26-body span{display:block;font:700 10px/1.4 system-ui,sans-serif;letter-spacing:.14em;color:#a2bcad}
-.koksik-home-v26-body strong{display:block;font-size:18px;line-height:1.3;margin:4px 0}.koksik-home-v26-body p{font-size:13px;line-height:1.5;color:#c3d1d3;margin:0}
-.koksik-home-v26>button{align-self:flex-start;border:0;background:transparent;color:#b0f580;font-size:12px;padding:4px;cursor:pointer}
-@media(max-width:390px){.koksik-home-v26{gap:8px;padding-right:9px}.koksik-home-v26>img{width:82px;height:100px}.koksik-home-v26-body strong{font-size:16px}}
+.koksik-home-v28{position:relative;isolation:isolate;display:flex;align-items:center;min-height:220px;overflow:hidden;border:1px solid #344b4f;border-radius:25px;background:radial-gradient(ellipse at 94% 100%,#27413a88,transparent 60%),linear-gradient(145deg,#162733,#0d1924);margin:18px 0 24px;padding:25px 18px;color:#f6f8fa}
+.koksik-home-v28 .kh28-copy{position:relative;z-index:2;width:70%;max-width:360px}
+.koksik-home-v28 .kh28-eyebrow{display:block;margin-bottom:9px;color:#b7ed93;font-size:11px;font-weight:750;letter-spacing:.14em;line-height:1.3}
+.koksik-home-v28 h2{font-size:clamp(26px,6.6vw,39px);line-height:1.04;letter-spacing:-.03em;margin:0 0 12px;color:#fff}
+.koksik-home-v28 p{font-size:clamp(13px,3.5vw,17px);line-height:1.45;color:#d4dfe1;margin:0 0 18px;max-width:29ch}
+.koksik-home-v28 .kh28-action{border:0;border-radius:14px;min-height:46px;background:#a8ef78;color:#111b14;padding:0 20px;font-size:15px;font-weight:800;cursor:pointer}
+.koksik-home-v28 .kh28-figure{position:absolute;z-index:1;right:-24px;bottom:-5px;height:88%;width:49%;object-fit:contain;object-position:right bottom;filter:drop-shadow(0 9px 12px #0008)}
+.koksik-home-v28-challenge{background:radial-gradient(circle at 90% 15%,#44654058,transparent 55%),linear-gradient(145deg,#132326,#10202b)}
+.koksik-home-v28-challenge .kh28-figure{height:79%;right:-8px;bottom:0;transform:rotate(-3deg)}
+.koksik-home-v28-motivation{background:radial-gradient(circle at 15% 12%,#304b3e5a,transparent 55%),linear-gradient(145deg,#182b35,#0b1720)}
+.koksik-home-v28-motivation .kh28-figure{right:-16px;height:100%}
+@media(max-width:390px){.koksik-home-v28{min-height:205px;padding:18px 15px}.koksik-home-v28 .kh28-copy{width:73%}.koksik-home-v28 .kh28-figure{width:47%;right:-19px}.koksik-home-v28 p{font-size:13px}}
+@media(prefers-reduced-motion:reduce){.koksik-home-v28 .kh28-figure{transform:none}}
 </style>`);
