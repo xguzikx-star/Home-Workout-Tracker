@@ -387,5 +387,74 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 </style>`);
 window.addEventListener('pagehide',()=>{if(active){syncActiveInputs();persistDraft()}});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&active){syncActiveInputs();persistDraft()}});
+// v14: controls stay inside the active workout; never navigate away to change an exercise.
+function smartWorkoutControls(){
+ if(!active||view!=='workout')return;
+ document.querySelectorAll('.active-card').forEach((card,ei)=>{
+  const e=active.ex[ei];if(!e)return;
+  const tools=card.querySelector('.exercise-tools');
+  if(tools&&!tools.querySelector('.swap-exercise')){
+   const btn=document.createElement('button');btn.type='button';btn.className='swap-exercise';btn.textContent='⇄ Zamień';
+   btn.onclick=()=>openWorkoutSwap(ei);tools.appendChild(btn);
+  }
+  const title=card.querySelector('.active-title');
+  if(title&&!title.querySelector('.workout-rest-setting')){
+   const btn=document.createElement('button');btn.type='button';btn.className='workout-rest-setting';
+   btn.textContent=`Przerwa ${Number(e.rest)||60} s`;btn.title='Zmień długość przerwy';
+   btn.onclick=()=>{syncActiveInputs();const value=prompt('Przerwa po serii (sekundy, 0–300):',String(e.rest??60));if(value===null)return;const n=Number(value);if(!Number.isFinite(n)||n<0||n>300)return alert('Podaj wartość od 0 do 300 sekund.');e.rest=Math.round(n);persistDraft();workout()};
+   title.appendChild(btn);
+  }
+  card.querySelectorAll('.set-row').forEach((row,si)=>{
+   if(row.querySelector('.workout-rpe'))return;
+   const btn=document.createElement('button');btn.type='button';btn.className='workout-rpe';
+   const val=e.sets[si]?.rpe;btn.textContent=(val!==undefined&&val!==null&&val!=='')?`RPE ${val}`:'RPE —';
+   btn.title='Ocena wysiłku serii (0–10)';
+   btn.onclick=()=>{syncActiveInputs();const input=prompt('Trudność tej serii RPE (0–10; puste = brak oceny):',String(e.sets[si].rpe??''));if(input===null)return;const n=Number(input.replace(',','.'));if(input.trim()!==''&&(!Number.isFinite(n)||n<0||n>10))return alert('RPE powinno być od 0 do 10.');e.sets[si].rpe=input.trim()===''?'':n;persistDraft();workout()};
+   row.appendChild(btn);
+  });
+ });
+}
+function openWorkoutSwap(index){
+ if(!active?.ex[index])return;syncActiveInputs();persistDraft();
+ document.querySelector('#workout-swap-overlay')?.remove();
+ const overlay=document.createElement('div');overlay.id='workout-swap-overlay';overlay.className='workout-swap-overlay';
+ const pane=document.createElement('div');pane.className='workout-swap-pane';
+ const heading=document.createElement('h2');heading.textContent='Zamień ćwiczenie';pane.appendChild(heading);
+ const detail=document.createElement('p');detail.textContent='Obecne: '+active.ex[index].name+'. Historia treningu pozostaje bez zmian. Wykonane serie nie zostaną usunięte bez potwierdzenia.';pane.appendChild(detail);
+ const search=document.createElement('input');search.type='search';search.placeholder='Wpisz nazwę ćwiczenia';search.setAttribute('aria-label','Szukaj zamiennika');pane.appendChild(search);
+ const list=document.createElement('div');list.className='workout-swap-list';pane.appendChild(list);
+ const close=document.createElement('button');close.type='button';close.textContent='Anuluj';close.className='outline';close.onclick=()=>overlay.remove();pane.appendChild(close);
+ overlay.appendChild(pane);document.body.appendChild(overlay);
+ overlay.onclick=ev=>{if(ev.target===overlay)overlay.remove()};
+ function results(){list.replaceChildren();const q=search.value.trim().toLocaleLowerCase('pl');const candidates=LIB.filter(x=>x.name!==active.ex[index].name&&(!q||x.name.toLocaleLowerCase('pl').includes(q))).slice(0,40);
+ candidates.forEach(x=>{const b=document.createElement('button');b.type='button';b.textContent=x.name+' · '+x.group;b.onclick=()=>{
+  const old=active.ex[index],finished=(old.sets||[]).some(s=>s.done);
+  if(finished&&!confirm('To ćwiczenie ma ukończone serie. Zastąpienie go usunie je z aktywnego treningu. Kontynuować?'))return;
+  const replacement=normalizeExercise(makeEx(x.name,x.group,x.gear,Math.max(1,old.sets?.length||3),10,0));
+  replacement.type=x.type||inferType(x.name,x.group);replacement.rest=old.rest??60;
+  active.ex[index]=replacement;persistDraft();overlay.remove();workout();
+ };list.appendChild(b)});
+ if(!candidates.length){const p=document.createElement('p');p.textContent='Brak pasujących ćwiczeń.';list.appendChild(p)}
+ }
+ search.oninput=results;results();search.focus();
+}
+const workoutBeforeSmartControls=workout;
+workout=function(){workoutBeforeSmartControls();smartWorkoutControls()};
+const renderRestBeforeSmartControls=renderRest;
+renderRest=function(){renderRestBeforeSmartControls();const el=document.querySelector('#rest-float');if(!el)return;
+ if(el.querySelector('.rest-add-time'))return;
+ for(const [seconds,label] of [[-15,'−15 s'],[15,'+15 s']]){const b=document.createElement('button');b.type='button';b.className='rest-add-time';b.textContent=label;b.onclick=()=>{restEnd=Math.max(Date.now(),restEnd+seconds*1000);renderRest()};el.appendChild(b)}
+};
+document.head.insertAdjacentHTML('beforeend',`<style>
+.workout-rest-setting,.workout-rpe{font-size:12px;border:1px solid rgba(115,137,145,.4);border-radius:10px;padding:7px 9px;background:transparent;color:inherit}
+.workout-rest-setting{margin-left:auto;white-space:nowrap}.workout-rpe{margin:4px 2px;white-space:nowrap}
+.workout-swap-overlay{position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.65);display:flex;justify-content:center;align-items:center;padding:12px}
+.workout-swap-pane{background:var(--bg,#f8f8f6);color:var(--text,#222);border-radius:16px;padding:20px;max-width:560px;width:100%;max-height:88vh;display:flex;flex-direction:column;gap:12px}
+.workout-swap-pane h2{margin:0}.workout-swap-pane p{font-size:13px;line-height:1.45}.workout-swap-pane input{padding:12px;border:1px solid #a5aca9;border-radius:9px;width:100%;font-size:16px}
+.workout-swap-list{overflow:auto;min-height:90px;display:flex;flex-direction:column;gap:6px}
+.workout-swap-list button{text-align:left;padding:12px;border:1px solid #a5aca9;border-radius:10px;background:transparent;color:inherit}
+#rest-float .rest-add-time{margin-left:6px}
+</style>`);
+
 if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 save();render();
