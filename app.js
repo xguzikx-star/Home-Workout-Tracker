@@ -630,53 +630,72 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 </style>`);
 
 
-// v20: Koksik – nienachalny trener. Osobny moduł prezentacyjny, bez zmian w danych ćwiczeń.
-const KOKSIK_QUOTES = {
-  home: ['No to jedziemy. Wymówki zostają za drzwiami.', 'Tęskniłaś? Nie? Trudno. Trening i tak czeka.', 'Forma sama się nie zrobi. Niestety.'],
-  workout: ['Jeszcze parę powtórzeń. Dasz radę, nie dramatyzuj.', 'Technika najpierw. Ego może poczekać.'],
-  rest: ['Odpoczynek? Spoko. Ale nie na zawsze.', 'Oddychaj. To część planu, nie wakacje.'],
-  finish: ['No i pięknie. Możesz teraz oficjalnie narzekać.', 'Zrobione. Nie mów, że nie potrafisz.'],
-  record: ['O proszę. Jednak te mięśnie nie są tylko dekoracją.']
+
+
+// v22 — Koksik jako kontekstowy towarzysz, bez zasłaniania formularzy.
+const KOKSIK_SCENES={
+ home:{image:'default',heading:'Koksik ma plan',text:'No to co? Wymówki zostają za drzwiami.'},
+ workout:{image:'scene-workout',heading:'Jeszcze jedna seria',text:'Technika najpierw. Ego może poczekać.'},
+ rest:{image:'scene-rest',heading:'Zasłużona przerwa',text:'Odpocznij. Ale nie zapuszczaj korzeni.'},
+ record:{image:'scene-record',heading:'Nowy rekord!',text:'O proszę. Jednak te mięśnie nie są tylko dekoracją.'},
+ finish:{image:'scene-finish',heading:'Trening zrobiony',text:'No i pięknie. Możesz teraz oficjalnie narzekać.'}
 };
 let koksikMuted=localStorage.getItem('hwt-koksik-muted')==='1';
-function koksikMessage(mode){
-  if(mode==='workout' && restEnd>Date.now())mode='rest';
-  const done=active?.ex?.reduce((a,e)=>a+(e.sets||[]).filter(s=>s.done&&!s.warmup).length,0)||0;
-  if(mode==='workout'&&done>=3)return 'Trzy serie za Tobą. Zaczyna to wyglądać poważnie.';
-  const pool=KOKSIK_QUOTES[mode]||KOKSIK_QUOTES.home;
-  const sessionKey=mode==='home'?localDay():mode+':'+Math.floor(done/2);
-  let hash=0;for(const ch of sessionKey)hash=(hash*31+ch.charCodeAt(0))>>>0;
-  return pool[hash%pool.length];
+let koksikRecordAt=0, koksikLastEvent='', koksikRestShown=false;
+function koksikScene(mode){
+ const rest=mode==='workout'&&typeof restEnd!=='undefined'&&restEnd>Date.now();
+ if(mode==='workout'&&Date.now()-koksikRecordAt<9000)return 'record';
+ return rest?'rest':mode;
 }
-function koksikCard(mode){
- const title=mode==='home'?'Koksik czeka':mode==='workout'?'Koksik dopinguje':'Koksik podsumowuje';
- return `<aside class="koksik-card" aria-label="Koksik — trener motywacyjny">
- <img class="koksik-avatar" src="./koksik.png" alt="Koksik, panda ruda w czarnej bluzie">
- <div class="koksik-copy"><span class="koksik-eyebrow">TWÓJ SARKASTYCZNY TRENER</span><strong>${title}</strong><p class="koksik-quote">${koksikMuted?'Koksik ma dziś wolne od komentarzy.':esc(koksikMessage(mode))}</p></div>
- <button type="button" class="koksik-mute" aria-label="${koksikMuted?'Włącz komentarze Koksika':'Wycisz komentarze Koksika'}" aria-pressed="${koksikMuted}">${koksikMuted?'Włącz':'Wycisz'}</button></aside>`;
+function koksikMarkup(mode){
+ const sceneName=koksikScene(mode),c=KOKSIK_SCENES[sceneName]||KOKSIK_SCENES.home;
+ const count=active?.ex?.reduce((n,e)=>n+(e.sets||[]).filter(x=>x.done&&!x.warmup).length,0)||0;
+ let text=c.text;
+ if(sceneName==='workout'&&count>=3)text='Już '+count+' serii za Tobą. Zaskakująco dobra robota.';
+ const compact=mode==='workout';
+ return `<aside class="koksik-v22 ${compact?'koksik-v22-small':''} ${mode==='finish'?'koksik-v22-finale':''}" aria-label="Koksik, towarzysz treningu" data-scene="${sceneName}">
+ <div class="koksik-v22-art"><img src="./koksik-${c.image}.png" alt="Koksik — panda ruda" loading="eager"></div>
+ <div class="koksik-v22-content"><span class="koksik-v22-eyebrow">KOKSIK · TWÓJ TRENER</span><strong>${c.heading}</strong><p>${koksikMuted?'Koksik odpoczywa od komentowania.':esc(text)}</p></div>
+ <button class="koksik-v22-toggle" type="button" aria-label="${koksikMuted?'Włącz komentarze':'Wycisz komentarze'}" aria-pressed="${koksikMuted}">${koksikMuted?'Włącz':'Wycisz'}</button></aside>`;
 }
 function koksikMount(mode){
- const root=document.querySelector('#app section');if(!root||root.querySelector('.koksik-card'))return;
- const anchor=(mode==='workout'?(root.querySelector('.active-card')||root.querySelector('.page-head')):root.querySelector('.page-head'));
+ const root=document.querySelector('#app section');if(!root)return;
+ const previous=root.querySelector('.koksik-v22');previous?.remove();
+ let anchor=mode==='workout'?(root.querySelector('.active-list')||root.querySelector('.active-card')):mode==='finish'?(root.querySelector('.summary-kpis')||root.querySelector('h1')):(root.querySelector('.home-primary')||root.querySelector('.hero-card'));
  if(!anchor)return;
- anchor.insertAdjacentHTML(mode==='workout'?'beforebegin':'afterend',koksikCard(mode));
- root.querySelector('.koksik-mute')?.addEventListener('click',()=>{
-  koksikMuted=!koksikMuted;localStorage.setItem('hwt-koksik-muted',koksikMuted?'1':'0');
-  const card=root.querySelector('.koksik-card');if(card)card.outerHTML=koksikCard(mode);
-  root.querySelector('.koksik-mute')?.addEventListener('click',()=>{koksikMuted=!koksikMuted;localStorage.setItem('hwt-koksik-muted',koksikMuted?'1':'0');render()});
- });
+ anchor.insertAdjacentHTML('beforebegin',koksikMarkup(mode));
+ const b=root.querySelector('.koksik-v22-toggle');b?.addEventListener('click',()=>{koksikMuted=!koksikMuted;localStorage.setItem('hwt-koksik-muted',koksikMuted?'1':'0');koksikRefresh(mode)});
 }
-const homeWithoutKoksik=home;home=function(){homeWithoutKoksik();koksikMount('home')};
-const workoutWithoutKoksik=workout;workout=function(){workoutWithoutKoksik();koksikMount('workout')};
-const finishWithoutKoksik=finishPage;finishPage=function(){finishWithoutKoksik();koksikMount('finish')};
+function koksikRefresh(mode){
+ const card=document.querySelector('#app .koksik-v22');if(!card)return;
+ const scene=koksikScene(mode);if(card.dataset.scene!==scene||card.querySelector('.koksik-v22-toggle')?.getAttribute('aria-pressed')!==String(koksikMuted)){
+ const parent=card.parentNode;const next=card.nextSibling;card.remove();const t=document.createElement('div');t.innerHTML=koksikMarkup(mode);const fresh=t.firstElementChild;parent.insertBefore(fresh,next);
+ fresh.querySelector('.koksik-v22-toggle')?.addEventListener('click',()=>{koksikMuted=!koksikMuted;localStorage.setItem('hwt-koksik-muted',koksikMuted?'1':'0');koksikRefresh(mode)});
+ }
+}
+const koksikHomeBase=home;home=function(){koksikHomeBase();koksikMount('home')};
+const koksikWorkoutBase=workout;workout=function(){koksikWorkoutBase();koksikMount('workout')};
+const koksikFinishBase=finishPage;finishPage=function(){koksikFinishBase();koksikMount('finish')};
+const koksikRecordBase=checkRecord;checkRecord=function(e,s){
+ const was=typeof previousBest==='function'?previousBest(e.name):{kg:0,reps:0};
+ koksikRecordBase(e,s);
+ if(e.type==='reps'&&!s.warmup&&(+s.kg>was.kg||(+s.kg===was.kg&&+s.reps>was.reps))&&logs.length){koksikRecordAt=Date.now()}
+};
+const koksikRestBase=renderRest;renderRest=function(){koksikRestBase();if(view==='workout')koksikRefresh('workout')};
 document.head.insertAdjacentHTML('beforeend',`<style>
-.koksik-card{display:flex;align-items:center;gap:12px;background:#19262d;border:1px solid rgba(176,217,165,.18);border-radius:18px;margin:14px 0 22px;padding:12px;min-width:0;color:#ecf0ea;font-family:inherit}
-.koksik-avatar{width:72px;height:76px;flex:0 0 72px;object-fit:cover;object-position:center 31%;border-radius:14px;background:#f6e9dd}
-.koksik-copy{min-width:0;flex:1}.koksik-eyebrow{display:block;color:#a5bdaf;font-size:9px;letter-spacing:.13em;font-weight:700;margin-bottom:4px}
-.koksik-copy strong{display:block;font-size:15px;font-weight:750;line-height:1.22;letter-spacing:-.025em}
-.koksik-quote{margin:5px 0 0;font-size:12px!important;line-height:1.5;color:#d6e0d9;overflow-wrap:anywhere}
-.koksik-mute{align-self:flex-start;font:inherit!important;font-size:11px!important;color:#baf083!important;background:transparent!important;border:0!important;padding:7px 4px!important;min-height:32px;min-width:40px;cursor:pointer}
-.koksik-mute:focus-visible{outline:2px solid #baf083;outline-offset:2px;border-radius:6px}
-@media(max-width:380px){.koksik-card{gap:9px;padding:10px}.koksik-avatar{width:56px;height:66px;flex-basis:56px}.koksik-copy strong{font-size:14px}.koksik-quote{font-size:11px!important}}
+.koksik-v22{--kbg:#13232b;position:relative;display:grid;grid-template-columns:clamp(80px,23vw,138px) minmax(0,1fr);align-items:center;gap:14px;padding:16px 16px 16px 0;margin:18px 0 24px;min-height:125px;overflow:hidden;border:1px solid #344951;border-radius:20px;background:linear-gradient(130deg,#1a3035,#101c26 72%);color:#f5f7f5;font-family:inherit;box-shadow:0 7px 26px #00000018}
+.koksik-v22-art{align-self:stretch;min-height:112px;display:flex;align-items:end;justify-content:center;overflow:hidden;position:relative}
+.koksik-v22-art img{width:100%;height:100%;max-height:148px;object-fit:cover;object-position:center bottom;mix-blend-mode:normal;filter:drop-shadow(0 9px 12px #0006)}
+.koksik-v22-content{min-width:0;padding-right:48px}.koksik-v22-eyebrow{display:block;font-size:10px;letter-spacing:.15em;color:#b4c5c2;font-weight:700;margin-bottom:5px}
+.koksik-v22-content strong{display:block;font-weight:800;font-size:clamp(17px,3.9vw,23px);line-height:1.18;letter-spacing:-.035em}
+.koksik-v22-content p{margin:7px 0 0!important;font-size:14px!important;line-height:1.42!important;color:#d3dcdd!important;overflow-wrap:break-word}
+.koksik-v22-toggle{position:absolute;top:12px;right:12px;padding:6px!important;min-height:32px!important;min-width:40px!important;color:#bcf47e!important;background:transparent!important;box-shadow:none!important;border:0!important;font-size:12px!important;font-weight:600!important}
+.koksik-v22-small{grid-template-columns:76px minmax(0,1fr);min-height:90px;padding:8px 12px 8px 0;margin:12px 0 16px;border-radius:17px}
+.koksik-v22-small .koksik-v22-art{min-height:80px}.koksik-v22-small .koksik-v22-art img{max-height:92px}
+.koksik-v22-small .koksik-v22-content strong{font-size:16px}.koksik-v22-small .koksik-v22-content p{font-size:12px!important;margin-top:4px!important}.koksik-v22-small .koksik-v22-eyebrow{font-size:9px}
+.koksik-v22-finale{grid-template-columns:minmax(120px,34%) 1fr;min-height:185px;background:linear-gradient(130deg,#1e3639,#101b23);border-color:#466a50}
+.koksik-v22-finale .koksik-v22-art img{max-height:195px}.koksik-v22-finale .koksik-v22-content strong{font-size:clamp(21px,5vw,29px)}
+@media(max-width:480px){.koksik-v22{gap:8px}.koksik-v22-content{padding-right:35px}.koksik-v22-content p{font-size:13px!important}.koksik-v22-small{grid-template-columns:67px 1fr}.koksik-v22-small .koksik-v22-content p{font-size:12px!important}}
+@media(prefers-reduced-motion:no-preference){.koksik-v22[data-scene="record"] .koksik-v22-art img{animation:koksik-v22-pop .42s ease-out}@keyframes koksik-v22-pop{0%{transform:scale(.90)}75%{transform:scale(1.05)}100%{transform:scale(1)}}}
 </style>`);
 render();
