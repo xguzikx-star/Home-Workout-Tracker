@@ -817,7 +817,7 @@ const KOKSIK_TEXTS_V24 = {
  personal_record:["Rekord. Tylko nie mów nikomu, że ja nic nie zrobiłem.","Nowy rekord. Powiem wszystkim, że to moja zasługa.","Rekord. Nie wiem, kto cię tego nauczył. Na pewno nie ja.","Rekord. Dobra, odszczekuję wszystko, co o tobie myślałem.","Rekord. Teraz będę musiał więcej od ciebie oczekiwać. Nie chcę.","Zrobiliśmy to. Ty zrobiłaś, ale ja byłem obok."],
  workout_complete:["Koniec. Ja też jestem zmęczony, a nic nie robiłem.","Koniec. Byłem przy tobie cały czas. Leżąc, ale byłem.","Zrobione. Nie sądziłem, że dotrwasz. Ładnie mnie zaskoczyłaś.","Gotowe. Ja się nie spociłem ani razu. Ty za to za nas dwoje.","Skończyłaś. Ja też. Nie wiem z czym, ale skończyłem.","Możesz wracać na kanapę. Wyglądasz tam ładnie."]
 };
-const KOKSIK_POSES_V24={workout_start:[0,3,10,16,24],rest:[1,2,7,12,18,20,23,26],last_set:[3,9,14,19,22],personal_record:[3,10,16,19,25],workout_complete:[1,7,10,18,20,23]};
+const KOKSIK_POSES_V24={workout_start:[0,6,8,10,11,13,14,16],rest:[1,2,5,7,9,12,15,17,18,20,23,26],last_set:[0,3,8,9,14,19,22],personal_record:[3,4,10,16,19,25],workout_complete:[1,2,3,4,7,12,20,23]};
 const KOKSIK_LAST_V24={};
 function koksikPickV24(type){const arr=KOKSIK_TEXTS_V24[type]||KOKSIK_TEXTS_V24.rest;let i=Math.floor(Math.random()*arr.length);if(i===KOKSIK_LAST_V24[type]&&arr.length>1)i=(i+1)%arr.length;KOKSIK_LAST_V24[type]=i;return arr[i]}
 function koksikSpriteV24(type){const arr=KOKSIK_POSES_V24[type]||KOKSIK_POSES_V24.rest;return './koksik-pose-'+String(arr[Math.floor(Math.random()*arr.length)]).padStart(2,'0')+'.png'}
