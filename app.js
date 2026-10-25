@@ -807,3 +807,51 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 @media(max-width:420px){.koksik-v22-finale{padding-left:39%}.krs-content{padding-left:17px;padding-right:17px}}
 @media(prefers-reduced-motion:reduce){.krs-visual img,.koksik-rest-screen,.koksik-record-toast{animation:none!important}}
 </style>`);
+
+
+// v24 — Koksik: transparent character sprites, independent approved Polish text, non-blocking notifications.
+const KOKSIK_TEXTS_V24 = {
+ workout_start:["Wstałaś z kanapy. Najtrudniejsze za nami.","Jesteś tu. To już więcej, niż się spodziewałem.","Ładnie wyglądasz na tej kanapie. Wstań.","O, jednak. Byłem gotowy na rozczarowanie.","Nie wierzyłem, że przyjdziesz. Dalej nie wierzę, ale zaczynaj.","Dziś trenujesz ty. Ja jutro. Mówię tak od roku.","Zaczynaj. Ja będę udawał, że pomagam."],
+ rest:["Leżysz bardzo profesjonalnie. Wstań.","Siedzisz jak ktoś, kto już skończył. Nie skończyłaś.","Odpoczywasz tak ładnie, że aż szkoda przerywać. Przerywam.","Ja bym już nie wstał. Dlatego wstaniesz ty.","Wyglądasz na zmęczoną. Ja też. Tylko ty masz powód.","Jeszcze leżysz? Ambitnie. Wstań."],
+ last_set:["Ostatnia seria. Tym razem naprawdę. Chyba.","Dasz radę. Ja bym nie dał, ale ty tak.","Ja bym się poddał trzy serie temu. Dlatego jestem maskotką.","Dasz radę. Mówię tak każdemu, ale tobie nawet trochę wierzę.","Wytrzymaj. Ja bym nie wytrzymał, ale ja mam futro.","Nie patrz na mnie. Ja tu tylko ładnie wyglądam."],
+ personal_record:["Rekord. Tylko nie mów nikomu, że ja nic nie zrobiłem.","Nowy rekord. Powiem wszystkim, że to moja zasługa.","Rekord. Nie wiem, kto cię tego nauczył. Na pewno nie ja.","Rekord. Dobra, odszczekuję wszystko, co o tobie myślałem.","Rekord. Teraz będę musiał więcej od ciebie oczekiwać. Nie chcę.","Zrobiliśmy to. Ty zrobiłaś, ale ja byłem obok."],
+ workout_complete:["Koniec. Ja też jestem zmęczony, a nic nie robiłem.","Koniec. Byłem przy tobie cały czas. Leżąc, ale byłem.","Zrobione. Nie sądziłem, że dotrwasz. Ładnie mnie zaskoczyłaś.","Gotowe. Ja się nie spociłem ani razu. Ty za to za nas dwoje.","Skończyłaś. Ja też. Nie wiem z czym, ale skończyłem.","Możesz wracać na kanapę. Wyglądasz tam ładnie."]
+};
+const KOKSIK_POSES_V24={workout_start:[0,3,10,16,24],rest:[1,2,7,12,18,20,23,26],last_set:[3,9,14,19,22],personal_record:[3,10,16,19,25],workout_complete:[1,7,10,18,20,23]};
+const KOKSIK_LAST_V24={};
+function koksikPickV24(type){const arr=KOKSIK_TEXTS_V24[type]||KOKSIK_TEXTS_V24.rest;let i=Math.floor(Math.random()*arr.length);if(i===KOKSIK_LAST_V24[type]&&arr.length>1)i=(i+1)%arr.length;KOKSIK_LAST_V24[type]=i;return arr[i]}
+function koksikSpriteV24(type){const arr=KOKSIK_POSES_V24[type]||KOKSIK_POSES_V24.rest;return './koksik-pose-'+String(arr[Math.floor(Math.random()*arr.length)]).padStart(2,'0')+'.png'}
+let koksikNoticeTimerV24=0;
+function koksikNoticeV24(type,{persistent=false}={}){
+ if(koksikMuted)return;const previous=document.querySelector('#koksik-popup-v24');previous?.remove();clearTimeout(koksikNoticeTimerV24);
+ const p=document.createElement('div');p.id='koksik-popup-v24';p.className='koksik-popup-v24';p.setAttribute('role','status');
+ const img=document.createElement('img');img.src=koksikSpriteV24(type);img.alt='Koksik, panda ruda';p.appendChild(img);
+ const msg=document.createElement('p');msg.textContent=koksikPickV24(type);p.appendChild(msg);
+ const close=document.createElement('button');close.type='button';close.setAttribute('aria-label','Zamknij Koksika');close.textContent='×';close.onclick=()=>p.remove();p.appendChild(close);document.body.appendChild(p);
+ if(!persistent)koksikNoticeTimerV24=setTimeout(()=>p.remove(),5500);
+}
+// Do not occupy permanent workout space with a static Koksik card.
+const koksikMountBaseV24=koksikMount;
+koksikMount=function(mode){if(mode==='workout'||mode==='home'){document.querySelector('#app .koksik-v22')?.remove();return}koksikMountBaseV24(mode)};
+const koksikStartWorkoutBaseV24=startWorkout;
+startWorkout=function(...args){const was=!!active;koksikStartWorkoutBaseV24(...args);if(!was&&active)setTimeout(()=>koksikNoticeV24('workout_start'),150)};
+const koksikStartRestBaseV24=startRest;
+startRest=function(...args){koksikStartRestBaseV24(...args);const layer=document.querySelector('#koksik-rest-screen');if(layer){const art=layer.querySelector('.krs-visual img');if(art){art.src=koksikSpriteV24('rest');art.style.cssText='object-fit:contain;width:100%;height:100%;max-height:34vh';}const message=layer.querySelector('.krs-message');if(message)message.textContent=koksikPickV24('rest')}};
+const koksikShowRestBaseV24=koksikShowRest;
+koksikShowRest=function(){const existing=!!document.querySelector('#koksik-rest-screen');koksikShowRestBaseV24();if(!existing){const img=document.querySelector('#koksik-rest-screen .krs-visual img'),msg=document.querySelector('#koksik-rest-screen .krs-message');if(img)img.src=koksikSpriteV24('rest');if(msg)msg.textContent=koksikPickV24('rest')}};
+// Replace v23 baked-image record toast with text and a transparent illustration.
+const koksikCheckRecordBaseV24=checkRecord;
+checkRecord=function(...args){const before=koksikRecordAt;koksikCheckRecordBaseV24(...args);if(koksikRecordAt>before){document.querySelector('#koksik-record-toast')?.remove();clearTimeout(koksikRecordToastTimer);koksikNoticeV24('personal_record')}};
+const koksikFinishBaseV24=finishPage;
+finishPage=function(...args){koksikFinishBaseV24(...args);document.querySelector('#app .koksik-v22')?.remove();koksikNoticeV24('workout_complete',{persistent:true})};
+// Detect last unfinished work set after completing a set, without relying on its name.
+const koksikSaveBaseV24=save;
+let koksikLastSetShownV24=false;
+save=function(...args){const out=koksikSaveBaseV24(...args);if(active){const pending=active.ex?.flatMap(e=>(e.sets||[]).filter(s=>!s.done&&!s.warmup))||[];if(pending.length===1&&!koksikLastSetShownV24){koksikLastSetShownV24=true;koksikNoticeV24('last_set')}if(pending.length>1)koksikLastSetShownV24=false;}return out};
+document.head.insertAdjacentHTML('beforeend',`<style>
+.koksik-popup-v24{position:fixed;left:50%;bottom:calc(106px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:2147482999;width:min(92vw,390px);display:flex;align-items:center;gap:10px;padding:14px 40px 14px 8px;border:1px solid #42614e;border-radius:20px;background:#101e27f5;box-shadow:0 16px 40px #0009;color:#f5f7f8;animation:krsAppear .22s ease-out;pointer-events:auto}
+.koksik-popup-v24 img{width:88px;height:98px;flex:none;object-fit:contain;filter:drop-shadow(0 6px 9px #0005)}.koksik-popup-v24 p{font-size:14px;line-height:1.38;margin:0;font-weight:650}.koksik-popup-v24 button{position:absolute;top:3px;right:7px;background:transparent!important;border:0!important;font-size:24px;color:#d1ded8!important;min-height:32px}
+.krs-visual{background:none!important}.krs-visual img{width:100%;height:100%;object-fit:contain!important;mask-image:none!important;-webkit-mask-image:none!important;animation:koksikFloatV24 2.6s ease-in-out infinite alternate}
+@keyframes koksikFloatV24{from{transform:translateY(0) rotate(-1deg)}to{transform:translateY(-8px) rotate(1deg)}}
+@media(prefers-reduced-motion:reduce){.krs-visual img,.koksik-popup-v24{animation:none!important}}
+</style>`);
